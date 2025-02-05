@@ -1,4 +1,4 @@
-from.action import get_test_attack()
+from.action import get_test_attack
 
 class Species:
     
