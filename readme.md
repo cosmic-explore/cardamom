@@ -1,4 +1,4 @@
-# setup
+# Setup
 
 The game consists of a React client, a Flask server, and a Postgres database, all of which run in seperate docker containers that are managed by `compose.yaml`.
 
@@ -10,7 +10,7 @@ All done! You should be able to connect to the flask server at [localhost:8888](
 
 You can run `docker exec -it container-name bash` (replace the container-name) to run bash in the containers and navigate around.
 
-# todo
+# Todo
 
 ### client
 
@@ -18,6 +18,10 @@ You can run `docker exec -it container-name bash` (replace the container-name) t
 
 ### backend
 
+-   finalize movement logic
+-   add game adjucation logic
+-   add attacks
+-   add commands
 -   seed database
 -   connect to database from server with sqlalchemy
 -   server routes to be used by the client
