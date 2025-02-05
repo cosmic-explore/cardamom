@@ -6,7 +6,7 @@ The game consists of a React client, a Flask server, and a Postgres database, al
 2. Download, install, and run [Docker Desktop](https://docs.docker.com/desktop/), or just Docker Engine if you prefer
 3. Navigate to the repository in your terminal and run `docker compose up -d`
 
-All done! You should be able to connect to the flask server at [localhost:8888] and the database at port `5432` with username `dev_user` and password `dev_password`.
+All done! You should be able to connect to the flask server at [localhost:8888](http://localhost:8888) and the database at port `5432` with username `dev_user` and password `dev_password`.
 
 You can run `docker exec -it container-name bash` (replace the container-name) to run bash in the containers and navigate around.
 
