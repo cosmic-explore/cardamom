@@ -1,0 +1,26 @@
+services:
+  server:
+    image: onthesafari/cardamom-server
+    environment:
+      - POSTGRES_USER=dev_user
+      - POSTGRES_PASSWORD=dev_password
+      - POSTGRES_PORT=5432
+    build:
+      context: ./server
+    ports:
+      - "8888:5000"
+    volumes:
+      - ./server:/usr/src/cardamom
+  database:
+    image: "postgres"
+    environment:
+      - POSTGRES_USER=dev_user
+      - POSTGRES_PASSWORD=dev_password
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d/
+volumes:
+  database:
+    driver: local
