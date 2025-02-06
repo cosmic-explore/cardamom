@@ -19,10 +19,10 @@ You can run `docker exec -it container-name bash` (replace the container-name) t
 ### backend
 
 -   finalize movement logic
+-   add player logic
 -   add game adjucation logic
 -   seed database
 -   connect to database from server with sqlalchemy
 -   server routes to be used by the client
 -   oauth authentication for players
--   multi-user sessions for games
--   add redis for speed
+-   redis to cache data for ongoing games and push changes to players
