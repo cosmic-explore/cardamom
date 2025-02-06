@@ -20,8 +20,6 @@ You can run `docker exec -it container-name bash` (replace the container-name) t
 
 -   finalize movement logic
 -   add game adjucation logic
--   add attacks
--   add commands
 -   seed database
 -   connect to database from server with sqlalchemy
 -   server routes to be used by the client
