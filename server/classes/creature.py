@@ -63,3 +63,6 @@ class Creature:
     def remove_from_board(self):
         if self.position is not None:
             self.set_position(None)
+
+def get_test_creature(nickname):
+    return Creature(None, None, 1, nickname)
