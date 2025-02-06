@@ -12,8 +12,9 @@ class Board:
         self.creatures = []
 
     def __getitem__(self, key):
-        # expects to be called like board[x][y]. Returns the column at which to find position y.
-        # todo: add error handling for out of bounds indexes
+        """Expects to be called like board[x][y]. Returns the column at which
+        to find position y."""
+        # TODO: add error handling for out of bounds indexes
         return self.__columns[key]
     
     def __str__(self):
@@ -42,29 +43,22 @@ class Board:
             )
         )
 
-    def get_valid_moves(self, creature):        
+    def get_positions_in_range(self, position, distance):
         # uses brute force rather than a pathing algorithm like BFS because
-        # performance is not an issue
-
-        if creature.position is None:
-            raise Exception("Creature has no position")
-        
-        if self[creature.position.x][creature.position.y] is not creature.position:
-            raise Exception("Invalid starting position")
-        
+        # performance is not currently an issue and boards are always
+        # rectangular
         return [
             pos for pos
             in flatten(self.__columns)
-            if pos is not creature.position
-            and self.get_distance(pos, creature.position) <= creature.speed
-            ]
+            if pos is not position
+            and self.get_distance(pos, position) <= distance
+        ]
 
-    def get_creature_path(self, creature, destination):
-        if destination not in self.get_valid_moves(creature):
+    def get_travel_path(self, start, travel_range, destination):
+        if destination not in self.get_positions_in_range(start, travel_range):
             raise Exception("Destination out of range")
 
-        creature_path = []
-        start = creature.position
+        travel_path = []
         distance = self.get_distance(start, destination)
         unit_vector = [
             (destination.x - start.x) / distance,
@@ -84,14 +78,14 @@ class Board:
         # calculate for collision based on trajectories while animating smoothly on
         # the frontend
         
-        distance_per_tick = creature.speed / TICKS_PER_TURN
+        distance_per_tick = travel_range / TICKS_PER_TURN
         ticks_to_move = ceil(distance / distance_per_tick)
 
-        # Finds points at given distances between starting and ending points
+        # Finds positions at the given distances between starting and ending points
         for tick_pos in range(1, ticks_to_move):
             current_distance = distance_per_tick * tick_pos
             x_pos = round(start.x + (unit_vector[0] * current_distance))
             y_pos = round(start.y + (unit_vector[1] * current_distance))
-            creature_path.append(self[x_pos][y_pos])
+            travel_path.append(self[x_pos][y_pos])
         
-        return (creature, creature_path)
+        return travel_path

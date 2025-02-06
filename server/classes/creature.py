@@ -1,7 +1,6 @@
 from .species import get_test_species
 
 class Creature:
-    
     def __init__(self, species_id, player_id, level, nickname):
         self.species_id = species_id
         self.player_id = player_id
@@ -14,6 +13,10 @@ class Creature:
     @property
     def position(self):
         return self.__position
+
+    @property
+    def is_fainted(self):
+        return self.current_hp <= 0
 
     def __init_from_species(self, species_id, level):
         # TODO: pull species from DB with sqlalchemy, define and implement level algorithm
@@ -30,8 +33,11 @@ class Creature:
 
         if self.position is new_position:
             return
-
-        if new_position.creature is not None and new_position.creature is not self:
+        elif new_position is None:
+            old_position = self.position
+            self.__position = None
+            old_position.set_creature(None)
+        elif new_position.creature is not None and new_position.creature is not self:
             print("Space is occupied")
         else:
             old_position = self.position
@@ -42,8 +48,18 @@ class Creature:
             
             if new_position.creature is not self:
                 new_position.set_creature(self)
-    
+
+    def get_move_path(self, destination):
+        board = self.position.board
+        return board.get_travel_path(self.position, self.speed, destination)
+
     def receive_action(self, action):
         # for now, the only type of actions are attacks
-        # todo: add a damage equation that factors in creature defense
+        # TODO: add a damage equation that factors in creature defense
         self.current_hp -= action.power
+        if self.is_fainted:
+            self.remove_from_board()
+
+    def remove_from_board(self):
+        if self.position is not None:
+            self.set_position(None)
