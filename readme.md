@@ -22,11 +22,8 @@ The current state of the game can be interacted with by accessing the container 
 
 ### backend
 
--   finalize movement logic
--   add player logic
--   add game adjucation logic
--   seed database
--   connect to database from server with sqlalchemy
+-   redis to cache data for ongoing games and push changes to players
 -   server routes to be used by the client
 -   oauth authentication for players
--   redis to cache data for ongoing games and push changes to players
+-   seed database
+-   connect to database from server with sqlalchemy
