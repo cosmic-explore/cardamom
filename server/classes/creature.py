@@ -49,10 +49,6 @@ class Creature:
             if new_position.creature is not self:
                 new_position.set_creature(self)
 
-    def get_move_path(self, destination):
-        board = self.position.board
-        return board.get_travel_path(self.position, self.speed, destination)
-
     def receive_action(self, action):
         # for now, the only type of actions are attacks
         # TODO: add a damage equation that factors in creature defense

@@ -1,7 +1,6 @@
 import os
 from math import floor
 from time import sleep
-from game_logic.constants import TURN_LENGTH_SECONDS, TICKS_PER_TURN
 
 class Match:
     def __init__(self, board, player_1, player_2):
@@ -34,7 +33,7 @@ class Match:
 
         # perform actions
         for command in commands:
-            if command.creature.is_fainted:
+            if command.creature.is_fainted or command.action is None:
                 continue
             for pos in command.action.get_affected_positions(command.creature.position, command.action_target):
                 if pos.creature is not None and pos.creature is not command.creature:
@@ -48,12 +47,21 @@ class Match:
         self.display_game()
 
         # perform moves
-        for tick in range (1, TICKS_PER_TURN):
+        # execute each move command until the creature runs out of moves
+        do_moves_remain = True
+        while do_moves_remain:
+            do_moves_remain = False
             for command in commands:
-                if tick < len(command.move_path):
-                    command.creature.set_position(command.move_path[tick])
-            sleep(TURN_LENGTH_SECONDS / TICKS_PER_TURN)
+                next_position = command.get_next_move()
+                if next_position is not None:
+                    do_moves_remain = True
+                    command.creature.set_position(next_position)
+            sleep(0.5)
             self.display_game()
         
         self.turn_number += 1
         self.display_game()
+
+    # def check_for_loss(self):
+    #     for player in self.players:
+            

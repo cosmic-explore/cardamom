@@ -10,7 +10,18 @@ class Action:
             # no destination means that action affects all squares within range
             return board.get_positions_in_range(start, self.reach)
         else:
-            return set(board.get_travel_path(start, self.reach, destination))
+            affected_positions = []
+            remaining_reach = self.reach
+            next_pos = board.get_next_pos_in_path(start, destination)
+            while next_pos is not None and remaining_reach > 0:
+                affected_positions.append(next_pos)
+                remaining_reach -= 1
+                next_pos = board.get_next_pos_in_path(next_pos, destination)
+
+            if destination not in affected_positions:
+                print("Action failed to reach target")
+
+            return affected_positions
 
 def get_test_attack():
     return Action("test attack", 1, 1)
