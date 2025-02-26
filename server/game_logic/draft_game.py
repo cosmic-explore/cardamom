@@ -1,3 +1,5 @@
+"""This script is an entry-point for testing the game."""
+
 import sys, os
 sys.path.append(".")
 from classes.player import get_test_player_1, get_test_player_2
