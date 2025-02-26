@@ -8,6 +8,7 @@ class Match:
         self.player_1 = player_1
         self.player_2 = player_2
         self.turn_number = 1
+        self.active = True
 
     def remove_fainted_commands(commands):
         return [command for command in commands if not command.creature.is_fainted]
@@ -16,6 +17,7 @@ class Match:
         os.system("clear")
         print(f"Turn {self.turn_number}")
         print(self.board)
+        sleep(0.5)
 
     def init_creature_positions(self):
         """Place the players' creatures on the board when the game starts"""
@@ -56,12 +58,43 @@ class Match:
                 if next_position is not None:
                     do_moves_remain = True
                     command.creature.set_position(next_position)
-            sleep(0.5)
             self.display_game()
         
-        self.turn_number += 1
-        self.display_game()
+        if self.check_game_over():
+            self.end_game()
+            return
+        else:
+            self.turn_number += 1
+            self.display_game()
 
-    # def check_for_loss(self):
-    #     for player in self.players:
+    def check_game_over(self):
+        """Assumes there are only two players"""
+        for player in [self.player_1, self.player_2]:
+            if all(map(lambda creature: creature.is_fainted, player.creatures)):
+                return True
+        return False
+    
+    def end_game(self):
+        """Assumes there are only two players"""
+        # TODO: save the match history and result in database
+        self.active = False
+        print("Game Over")
+
+        winner = self.get_winner()
+        if winner is None:
+            print("Draw")
+        else:
+            print(f"The winner is {winner.name}!")
+            
+    def get_winner(self):
+        """Assumes there are only two players"""
+        if self.active is True:
+            return None
+        
+        for player in [self.player_1, self.player_2]:
+            if any(map(lambda creature: not creature.is_fainted, player.creatures)):
+                return player
+        
+        # everyone lost
+        return None
             
