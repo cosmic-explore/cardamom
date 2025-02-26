@@ -10,6 +10,10 @@ All done! You should be able to connect to the flask server at [localhost:8888](
 
 You can run `docker exec -it container-name bash` (replace the container-name) to run bash in the containers and navigate around.
 
+### Running
+
+The current state of the game can be interacted with by accessing the container that hosts the flask server and running `game_logic/draft_game.py`.
+
 # Todo
 
 ### client
