@@ -1,5 +1,6 @@
-flask
-numpy
+# flask
+flask-session
+flask_oauthlib
+redis
 psycopg2
 sqlalchemy
-flask_oauthlib

@@ -1,7 +1,9 @@
+from uuid import uuid4
 from .species import get_test_species
 
 class Creature:
-    def __init__(self, species_id, player_id, level, nickname):
+    def __init__(self, species_id, player_id, level, nickname, id=None):
+        self.id = id if id is not None else uuid4()
         self.species_id = species_id
         self.player_id = player_id
         self.level = level

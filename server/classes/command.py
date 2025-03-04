@@ -16,3 +16,20 @@ class Command:
             )
         else:
             return None
+        
+    def to_simple_dict(self):
+        """Aids the JSON serialization of Command objects. Expects to be called
+        like json.dumps(command.to_simple_dict())."""
+        return {
+            "creature_id": str(self.creature.id),
+            "move_target": None if self.move_target is None else {
+                "x": self.move_target.x,
+                "y": self.move_target.y
+            },
+            "moves_remaining": self.moves_remaining,
+            "action_id": str(self.action.id),
+            "action_target": None if self.action_target is None else {
+                "x": self.action_target.x,
+                "y": self.action_target.y
+            }
+        }

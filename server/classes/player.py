@@ -1,7 +1,9 @@
+from uuid import uuid4
 from .creature import get_test_creature
 
 class Player:
-    def __init__(self, name):
+    def __init__(self, name, id=None):
+        self.id = id if id is not None else uuid4()
         self.name = name
         self.creatures = []
 

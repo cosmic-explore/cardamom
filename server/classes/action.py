@@ -1,5 +1,8 @@
+from uuid import uuid4
+
 class Action:
-    def __init__(self, name, reach, power):
+    def __init__(self, name, reach, power, id=None):
+        self.id = id if id is not None else uuid4()
         self.name = name
         self.reach = reach
         self.power = power
