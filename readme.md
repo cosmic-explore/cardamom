@@ -1,6 +1,6 @@
 # Setup
 
-The game consists of a React client, a Flask server, and a Postgres database, all of which run in seperate docker containers that are managed by `compose.yaml`.
+The game consists of a React client, a Flask server to handle game logic, a Redis server to cache active games, and a Postgres database, all of which run in seperate docker containers that are managed by `compose.yaml`.
 
 1. Clone this repository
 2. Download, install, and run [Docker Desktop](https://docs.docker.com/desktop/), or just Docker Engine if you prefer
