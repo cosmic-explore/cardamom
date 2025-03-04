@@ -16,14 +16,16 @@ The current state of the game can be interacted with by accessing the container 
 
 # Todo
 
+-   code linting
+
 ### client
 
 -   everything
 
 ### backend
 
--   redis to cache data for ongoing games and push changes to players
+-   use redis pub/sub to alert players when a turn has progressed
 -   server routes to be used by the client
 -   oauth authentication for players
 -   seed database
--   connect to database from server with sqlalchemy
+-   connect server with the postgres database
