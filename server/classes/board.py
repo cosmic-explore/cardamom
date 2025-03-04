@@ -1,4 +1,4 @@
-from math import sqrt, ceil
+from math import sqrt
 from .position import Position
 from game_logic.util import flatten
 
@@ -8,7 +8,6 @@ class Board:
         self.size_y = size_y
 
         self.__columns = [[Position(self, x, y) for y in range(size_y)] for x in range(size_x)]
-        self.creatures = []
 
     def __getitem__(self, key):
         """Expects to be called like board[x][y]. Returns the column at which
