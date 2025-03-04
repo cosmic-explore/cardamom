@@ -1,14 +1,16 @@
 import os
+from uuid import uuid4
 from math import floor
 from time import sleep
 
 class Match:
-    def __init__(self, board, player_1, player_2):
+    def __init__(self, board, player_1, player_2, id=None, turn_number=1, active=True):
+        self.id = id if id is not None else uuid4()
         self.board = board
         self.player_1 = player_1
         self.player_2 = player_2
-        self.turn_number = 1
-        self.active = True
+        self.turn_number = turn_number
+        self.active = active
 
     def remove_fainted_commands(commands):
         return [command for command in commands if not command.creature.is_fainted]
@@ -97,4 +99,38 @@ class Match:
         
         # everyone lost
         return None
-            
+    
+    def to_simple_dict(self):
+        """Aids the JSON serialization of Match objects. Expects to be called
+        like json.dumps(match.to_simple_dict())."""
+        def simplify_creature(creature):
+            return {
+                "id": str(creature.id),
+                "species_id": creature.species_id,
+                "player_id": creature.player_id,
+                "level": creature.level,
+                "nickname": creature.nickname,
+                "position": None if creature.position is None else {
+                    "x": creature.position.x,
+                    "y": creature.position.y
+                }
+            }
+        
+        def simplify_player(player):
+            return {
+                "id": str(player.id),
+                "name": player.name,
+                "creatures": [simplify_creature(c) for c in player.creatures]
+            }
+
+        return {
+            "id": str(self.id),
+            "board": {
+                "size_x": self.board.size_x,
+                "size_y": self.board.size_y
+            },
+            "player_1": simplify_player(self.player_1),
+            "player_2": simplify_player(self.player_2),
+            "turn_number": self.turn_number,
+            "active": self.active
+        }
