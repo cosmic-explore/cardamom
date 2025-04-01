@@ -103,34 +103,14 @@ class Match:
     def to_simple_dict(self):
         """Aids the JSON serialization of Match objects. Expects to be called
         like json.dumps(match.to_simple_dict())."""
-        def simplify_creature(creature):
-            return {
-                "id": str(creature.id),
-                "species_id": creature.species_id,
-                "player_id": creature.player_id,
-                "level": creature.level,
-                "nickname": creature.nickname,
-                "position": None if creature.position is None else {
-                    "x": creature.position.x,
-                    "y": creature.position.y
-                }
-            }
-        
-        def simplify_player(player):
-            return {
-                "id": str(player.id),
-                "name": player.name,
-                "creatures": [simplify_creature(c) for c in player.creatures]
-            }
-
         return {
             "id": str(self.id),
             "board": {
                 "size_x": self.board.size_x,
                 "size_y": self.board.size_y
             },
-            "player_1": simplify_player(self.player_1),
-            "player_2": simplify_player(self.player_2),
+            "player_1": self.player_1.to_simple_dict(),
+            "player_2": self.player_2.to_simple_dict(),
             "turn_number": self.turn_number,
             "active": self.active
         }

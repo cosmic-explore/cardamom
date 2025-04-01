@@ -62,5 +62,18 @@ class Creature:
         if self.position is not None:
             self.set_position(None)
 
+    def to_simple_dict(self):
+        return {
+            "id": str(self.id),
+            "species_id": self.species_id,
+            "player_id": self.player_id,
+            "level": self.level,
+            "nickname": self.nickname,
+            "position": None if self.position is None else {
+                "x": self.position.x,
+                "y": self.position.y
+            }
+        }
+
 def get_test_creature(nickname):
     return Creature(None, None, 1, nickname)

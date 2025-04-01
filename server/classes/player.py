@@ -11,6 +11,14 @@ class Player:
         """Func required by oauth"""
         return self.id
     
+    def to_simple_dict(self):
+        """For the JSON serialization of Player objects."""
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "creatures": [c.to_simple_dict() for c in self.creatures]
+        }
+    
 def get_test_player_1():
     player = Player("Safari")
     player.creatures.append(get_test_creature("A"))
