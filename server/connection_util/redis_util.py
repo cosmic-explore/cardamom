@@ -29,6 +29,8 @@ def match_from_json(json_str):
         return creature
     
     def init_player(player_dict, board):
+        if player_dict is None:
+            return None
         player = Player(player_dict["name"])
         player.creatures = [init_creature(c, board) for c in player_dict["creatures"]]
         return player

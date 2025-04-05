@@ -65,8 +65,8 @@ class Creature:
     def to_simple_dict(self):
         return {
             "id": str(self.id),
-            "species_id": self.species_id,
-            "player_id": self.player_id,
+            "species_id": str(self.species_id),
+            "player_id": str(self.player_id),
             "level": self.level,
             "nickname": self.nickname,
             "position": None if self.position is None else {
