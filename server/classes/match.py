@@ -2,10 +2,11 @@ import os
 from uuid import uuid4
 from math import floor
 from time import sleep
+from constants import TEST_MATCH_ID
 
 class Match:
-    def __init__(self, board, player_1, player_2, id=None, turn_number=1, active=True):
-        self.id = id if id is not None else uuid4()
+    def __init__(self, board, player_1, player_2, id=TEST_MATCH_ID, turn_number=1, active=True):
+        self.id = id if id is not TEST_MATCH_ID else uuid4()
         self.board = board
         self.player_1 = player_1
         self.player_2 = player_2
