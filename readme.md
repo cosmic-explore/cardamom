@@ -24,8 +24,9 @@ The current state of the game can be interacted with by accessing the container 
 
 ### backend
 
--   use redis pub/sub to alert players when a turn has progressed
--   server routes to be used by the client
+-   ~~add basic game logic: matches, players, creatures, winning~~
+-   ~~use redis pub/sub to alert players when a turn has progressed~~
+-   server routes to communicate with client
 -   oauth authentication for players
 -   seed database
 -   connect server with the postgres database
