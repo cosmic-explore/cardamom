@@ -16,11 +16,17 @@ The current state of the game can be interacted with by accessing the container 
 
 # Todo
 
+### general
+
 -   code linting
 
 ### client
 
--   everything
+-   login
+-   join game
+-   display game
+-   play game
+-   everything else
 
 ### backend
 
@@ -30,3 +36,4 @@ The current state of the game can be interacted with by accessing the container 
 -   oauth authentication for players
 -   seed database
 -   connect server with the postgres database
+-   tests
