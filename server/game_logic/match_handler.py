@@ -1,10 +1,14 @@
 
 import json
 import redis
+# from flask import current_app
+import logging
 from constants import TEST_MATCH_ID, NULL_STR, TEST_MATCH_CHANNEL
 from classes.match import Match
 from classes.board import Board
 from connection_util.redis_util import match_from_json
+
+logging.basicConfig(level=logging.DEBUG)
 
 redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
 
@@ -14,6 +18,7 @@ def initialize_match(player_1, player_2, match_id=TEST_MATCH_ID):
     match = Match(board, player_1, player_2)
     update_match_redis(match)
     clear_match_commands(match_id)
+    return match
 
 def start_match(match):
     """place creatures and inform players the match has started"""
@@ -22,12 +27,13 @@ def start_match(match):
     publish_match_update(match)
 
 def update_match_redis(match):
+    logging.debug("Updating match in redis")
     # TODO: remove next line
     match.id = TEST_MATCH_ID
-    print(match.to_simple_dict())
     redis_connection.set(str(match.id), json.dumps(match.to_simple_dict()))
 
 def publish_match_update(match):
+    logging.debug(f"publishing match update on channel {TEST_MATCH_CHANNEL}")
     update_match_redis(match)
     redis_connection.publish(TEST_MATCH_CHANNEL, redis_connection.get(match.id))
 
@@ -42,16 +48,15 @@ def attempt_join_match(player, match_id=TEST_MATCH_ID):
     # TODO: implement for real - the current implementation is to test related functionality
     match = get_active_match_by_id(match_id)
     if match is None:
-        print("match was none")
-        initialize_match(player, None)
-        return True
+        logging.debug("match was none")
+        return initialize_match(player, None)
     elif match.player_2 is None:
-        print("update player 2")
+        logging.debug("update player 2")
         match.player_2 = player
         update_match_redis(match)
-        return True
+        return match
     else: # match is already full
-        return False
+        return None
 
 def get_active_match_of_player(player):
     """Returns the active match of the player"""
@@ -61,6 +66,6 @@ def get_active_match_of_player(player):
 
 def get_active_match_by_id(match_id):
     """Finds and returns match with given ID in redis"""
-    print(f"looking for match {match_id} in redis")
+    logging.debug(f"looking for match {match_id} in redis")
     match_json = redis_connection.get(match_id)
     return None if match_json is None else match_from_json(match_json)
