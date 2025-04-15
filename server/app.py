@@ -24,6 +24,7 @@ redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=T
 CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
 def event_stream(channel):
+    """Streams events from the given redis channel"""
     app.logger.debug(f"starting listener for {channel}")
     redis_listener = redis_connection.pubsub()
     redis_listener.subscribe(channel)

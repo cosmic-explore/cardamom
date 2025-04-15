@@ -43,8 +43,7 @@ class Board:
 
     def get_positions_in_range(self, position, distance):
         # uses brute force rather than a pathing algorithm like BFS because
-        # performance is not currently an issue and boards are always
-        # rectangular
+        # performance is not an issue and boards are always rectangular
         return [
             pos for pos
             in flatten(self.__columns)
