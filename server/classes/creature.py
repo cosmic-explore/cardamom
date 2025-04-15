@@ -69,6 +69,11 @@ class Creature:
             "player_id": str(self.player_id),
             "level": self.level,
             "nickname": self.nickname,
+            "max_hp": self.__max_hp,
+            "current_hp": self.current_hp,
+            "attack": self.attack,
+            "speed": self.speed,
+            "actions": [a.to_simple_dict() for a in self.actions],
             "position": None if self.position is None else {
                 "x": self.position.x,
                 "y": self.position.y

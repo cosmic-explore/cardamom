@@ -25,6 +25,14 @@ class Action:
                 print("Action failed to reach target")
 
             return affected_positions
+        
+    def to_simple_dict(self):
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "reach": self.reach,
+            "power": self.power
+        }
 
 def get_test_attack():
     return Action("test attack", 1, 1)
