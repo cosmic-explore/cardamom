@@ -46,6 +46,11 @@ def attempt_join_match(player, match_id=TEST_MATCH_ID):
     """Add a player to an open match, or create an open match if one does not
     exist."""
     # TODO: implement for real - the current implementation is to test related functionality
+    # try to get the player's active match
+    match = get_active_match_of_player(player)
+    if match is not None:
+        return match
+    
     match = get_active_match_by_id(match_id)
     if match is None:
         logging.debug("match was none")
