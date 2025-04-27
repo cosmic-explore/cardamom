@@ -47,26 +47,35 @@ def attempt_join_match(player, match_id=TEST_MATCH_ID):
     exist."""
     # TODO: implement for real - the current implementation is to test related functionality
     # try to get the player's active match
+    logging.debug(f"Player {player.name} requesting to join match")
     match = get_active_match_of_player(player)
     if match is not None:
+        logging.debug(f"{player.name} is already in a match")
         return match
     
     match = get_active_match_by_id(match_id)
     if match is None:
-        logging.debug("match was none")
+        logging.debug("creating new match")
         return initialize_match(player, None)
     elif match.player_2 is None:
-        logging.debug("update player 2")
+        logging.debug("joining existing match")
         match.player_2 = player
         update_match_redis(match)
         return match
     else: # match is already full
+        logging.debug("match is already full")
         return None
 
 def get_active_match_of_player(player):
     """Returns the active match of the player"""
     # TODO: implement for real - the current implementation is to test related functionality
-    return get_active_match_by_id(TEST_MATCH_ID)
+    test_match = get_active_match_by_id(TEST_MATCH_ID)
+    if test_match.player_1 is not None and test_match.player_1.name == player.name:
+        return test_match
+    elif test_match.player_2 is not None and test_match.player_2.name == player.name:
+        return test_match
+    else:
+        return None
     
 
 def get_active_match_by_id(match_id):
