@@ -52,6 +52,6 @@ class Position:
         return {
             "x": self.x,
             "y": self.y,
-            "creature": None if self.creature is None else str(self.creature.id)
+            "creature": None if self.creature is None else self.creature.to_simple_dict()
         }
     
