@@ -45,4 +45,13 @@ class Position:
                 adjacent_positions.append(self.board[x][y])
 
         return adjacent_positions
+
+    def to_simple_dict(self):
+        """Aids the JSON serialization of Match objects. Expects to be called
+        like json.dumps(position.to_simple_dict())."""
+        return {
+            "x": self.x,
+            "y": self.y,
+            "creature": None if self.creature is None else str(self.creature.id)
+        }
     

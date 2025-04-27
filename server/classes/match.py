@@ -106,10 +106,7 @@ class Match:
         like json.dumps(match.to_simple_dict())."""
         return {
             "id": str(self.id),
-            "board": {
-                "size_x": self.board.size_x,
-                "size_y": self.board.size_y
-            },
+            "board": self.board.to_simple_dict(),
             "player_1": None if self.player_1 is None else self.player_1.to_simple_dict(),
             "player_2": None if self.player_2 is None else self.player_2.to_simple_dict(),
             "turn_number": self.turn_number,

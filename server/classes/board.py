@@ -72,3 +72,12 @@ class Board:
                 next_pos = position
 
         return next_pos
+
+    def to_simple_dict(self):
+        """Aids the JSON serialization of Match objects. Expects to be called
+        like json.dumps(board.to_simple_dict())."""
+        return {
+            "size_x": self.size_x,
+            "size_y": self.size_y,
+            "columns": [[pos.to_simple_dict() for pos in col] for col in self.__columns]
+        }
