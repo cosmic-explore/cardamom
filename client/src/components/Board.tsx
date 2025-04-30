@@ -1,17 +1,32 @@
 import { BoardData, PositionData } from "../DataTypes"
-import { Position } from "./Position"
+import { Position, PosSelectionType } from "./Position"
 
+type BoardProps = {
+    boardData: BoardData
+    selectedPos: PositionData | null
+    handlePosClick: (data: PositionData) => void
+}
 
-export function Board(props : BoardData) {  
+export function Board(props : BoardProps) {
+    const columns = props.boardData.columns
+    
     return (
         <div className="flex">
-           {props.columns.map((col, colIndex: number) => {
+           {columns.map((col, rowIndex: number) => {
                 return (
-                <div key={colIndex}>
-                    {col.map((pos : PositionData, rowIndex : number) => {
+                <div key={rowIndex}>
+                    {col.map((posData : PositionData, colIndex : number) => {
+                        let selection = PosSelectionType.none
+                        if (props.selectedPos?.x === rowIndex && props.selectedPos.y === colIndex) {
+                            selection = PosSelectionType.selected
+                        }
                         return (
                             <div key={`${rowIndex},${colIndex}`}>
-                                <Position {...pos}/>
+                                <Position {...{
+                                    posData,
+                                    selection,
+                                    clickFunc: props.handlePosClick
+                                }}/>
                             </div>
                         )}
                     )}

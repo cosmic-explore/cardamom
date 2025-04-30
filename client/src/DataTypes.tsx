@@ -15,7 +15,7 @@ export type PlayerData = {
 export type BoardData = {
     size_x: number
     size_y: number
-    columns: [][]
+    columns: PositionData[][]
 } 
 
 export type PositionData = {

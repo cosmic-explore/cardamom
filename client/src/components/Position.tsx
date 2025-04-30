@@ -1,28 +1,35 @@
-import { SpriteMap } from "../constants/sprite-map"
 import { PositionData } from "../DataTypes"
+import { CreatureIcon } from "./CreatureSprite"
 
-export function Position(props: PositionData) {
+
+export enum PosSelectionType {
+    // values are Tailwind.css classnames for styling
+    none = 'bg-orange-100',
+    selected = 'bg-sky-100',
+    highlighted = 'bg-cyan-100'
+}
+
+export type PositionProps = {
+    posData: PositionData
+    selection: PosSelectionType
+    clickFunc: (data: PositionData) => void
+}
+
+export function Position(props: PositionProps) {
     const handleClick = () => {
-        console.log(props.creature)
+        props.clickFunc(props.posData)
     }
     
     return (
-        <div className='bg-orange-100 size-12 outline hover:bg-sky-100 flex justify-center items-center' onClick={handleClick}>
+        <div 
+            className={`${props.selection} size-12 outline hover:bg-sky-100 flex justify-center items-center`}
+            onClick={handleClick}
+        >
             {
-                props.creature ? 
-                <CreatureIcon {...{speciesName: props.creature.nickname}}/> :
-                `${props.x},${props.y}`
+                props.posData.creature ? 
+                <CreatureIcon {...{speciesName: props.posData.creature.nickname}}/> :
+                `${props.posData.x},${props.posData.y}`
             }
         </div>
-    )
-}
-
-const CreatureIcon = (props: {speciesName: string}) => {
-     // TODO: pass the species name for real
-    let speciesName = 'Test Creature'
-    const src = SpriteMap.get(speciesName)
-
-    return (
-        <img src={src}/>
     )
 }
