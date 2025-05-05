@@ -1,7 +1,6 @@
 
 import json
 import redis
-# from flask import current_app
 import logging
 from constants import TEST_MATCH_ID, NULL_STR, TEST_MATCH_CHANNEL
 from classes.match import Match
@@ -76,7 +75,6 @@ def get_active_match_of_player(player):
         return test_match
     else:
         return None
-    
 
 def get_active_match_by_id(match_id):
     """Finds and returns match with given ID in redis"""
