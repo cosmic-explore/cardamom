@@ -74,6 +74,17 @@ def refresh_match():
     match = get_active_match_of_player(player)
     publish_match_update(match)
     return Response(status=204) 
+
+@app.route('/creature/moves/<id>', methods=['GET'])
+def get_creature_moves(id):
+    """Returns a list of possible moves for the creature"""
+    # TODO: get creature from db by id instead of using mock
+    player_name = session.get("player_name")
+    player = get_test_player_1() if player_name == "Safari" else get_test_player_2()
+    match = get_active_match_of_player(player)
+    creature = next(c for c in match.player_1.creatures + match.player_2.creatures if c.nickname == id)
+    positions = match.board.get_positions_in_range(creature.position, creature.speed)
+    return jsonify([pos.to_simple_dict() for pos in positions])
     
 @app.route('/match/submit', methods=['POST'])
 def submit_commands():
