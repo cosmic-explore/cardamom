@@ -10,4 +10,4 @@ class Species:
         self.actions = [get_test_attack()]
 
 def get_test_species():
-    return Species("Test Species", 1, 1, 10)
+    return Species("Test Species", 1, 1, 4)
