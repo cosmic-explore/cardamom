@@ -1,4 +1,4 @@
-import { LOGIN, JOIN_MATCH, REFRESH_MATCH } from "../constants/server-endpoints"
+import { LOGIN, JOIN_MATCH, REFRESH_MATCH, GET_CREATURE_MOVES } from "../constants/server-endpoints"
 
 const buildPostRequest = (body : string): RequestInit => {
     return {
@@ -36,4 +36,9 @@ export const joinMatch = async (): Promise<EventSource> => {
 export const refreshMatch = async () => {
     /** Triggers a server sent event */
     await fetch(REFRESH_MATCH, buildGetRequest())
+}
+
+export const getCreatureMoves = async (creatureId : string) => {
+    let response = await fetch(`${GET_CREATURE_MOVES}/${creatureId}`, buildGetRequest())
+    return response.json()
 }

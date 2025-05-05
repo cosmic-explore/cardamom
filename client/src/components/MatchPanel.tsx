@@ -4,7 +4,7 @@ import { Board } from "./Board";
 import { Button } from "@radix-ui/themes";
 import { OrderPanel } from "./OrderPanel";
 import { DetailPanel } from "./DetailPanel";
-import { refreshMatch } from "../utils/server-connection";
+import { getCreatureMoves, refreshMatch } from "../utils/server-connection";
 
 export const MatchPanel = (props : {matchData: MatchData, playerData: PlayerData}) => {
     const [selectedPos, setSelectedPos] = useState<PositionData | null>(null)
@@ -14,10 +14,14 @@ export const MatchPanel = (props : {matchData: MatchData, playerData: PlayerData
         refreshMatch()
     }
 
-    const handlePosClick = (posData: PositionData) => {
+    const handlePosClick = async (posData: PositionData) => {
         setSelectedPos(posData)
         if (posData.creature !== null) {
             // ask the server for the possible moves
+            let response = await getCreatureMoves(posData.creature.nickname)
+            setHighlightedPosList(response)
+        } else {
+            setHighlightedPosList([])
         }
     }
 
@@ -33,6 +37,7 @@ export const MatchPanel = (props : {matchData: MatchData, playerData: PlayerData
                 <Board {...{
                     boardData: props.matchData.board,
                     selectedPos,
+                    highlightedPosList,
                     handlePosClick
                 }}/>
             </div>

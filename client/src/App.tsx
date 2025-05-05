@@ -11,7 +11,7 @@ function App() {
   const [matchData, setMatchData] = useState<MatchData>()
 
   const handleLogin = (inputText : string) => {
-    login(inputText).then((responseJson) =>{
+    login(inputText).then((responseJson) => {
       console.log(responseJson)
       setPlayerData(responseJson)
     })
