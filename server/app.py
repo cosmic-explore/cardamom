@@ -84,7 +84,7 @@ def get_creature_moves(id):
 @app.route('/creatures/<creature_id>/actions/<action_id>/targets', methods=['GET'])
 def get_action_targets(creature_id, action_id):
     """Returns a list of valid targets for the action"""
-    app.logger.debug(f"searching for targets of action {action_id} from creature {creature_id}")
+    app.logger.debug(f"searching for possible targets of action {action_id} from creature {creature_id}")
     match = get_match_from_session()
     creature = match.find_creature_in_match(creature_id)
     action = creature.find_action_of_creature(action_id)
@@ -92,13 +92,14 @@ def get_action_targets(creature_id, action_id):
     return jsonify([pos.to_simple_dict() for pos in positions])
     # get pos in range using the action's range and creature's position
 
-@app.route('/creatures/<creature_id>/actions/<action_id>/affected?target_x=<x>&target_y<y>', methods=['GET'])
-def get_action_affected(creature_id, action_id, x, y):
+@app.route('/creatures/<creature_id>/actions/<action_id>/affected', methods=['GET'])
+def get_action_affected(creature_id, action_id):
     """Returns a list of positions affected by the action"""
     match = get_match_from_session()
     creature = match.find_creature_in_match(creature_id)
     action = creature.find_action_of_creature(action_id)
-    target = match.board[int(x)][int(y)]
+    target = match.board[int(request.args.get("target_x"))][int(request.args.get("target_y"))]
+    app.logger.debug(f"Finding affected positions for {action.id} from {creature.position} to {target}")
     positions = action.get_affected_positions(creature.position, target)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
