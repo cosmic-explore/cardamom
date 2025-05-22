@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MatchData, PlayerData, PositionData } from '../DataTypes';
+import { CommandData, MatchData, PlayerData, PositionData } from '../DataTypes';
 import { Board } from './Board';
 import { Button } from '@radix-ui/themes';
 import { OrderPanel } from './OrderPanel';
@@ -9,6 +9,7 @@ import { getCreatureMoves, refreshMatch } from '../utils/server-connection';
 export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData }) => {
     const [selectedPos, setSelectedPos] = useState<PositionData | null>(null);
     const [highlightedPosList, setHighlightedPosList] = useState<PositionData[]>([]);
+    const [commands, setCommands] = useState<CommandData[]>([]);
 
     const handleRefreshMatch = () => {
         refreshMatch();
@@ -43,12 +44,17 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                     }}
                 />
             </div>
+
             <div className="flex flex-col grow-1 items-center">
                 <div className="flex flex-row">
                     {selectedPos ? <DetailPanel {...selectedPos} /> : ''}
                     {props.playerData && props.matchData ? (
                         <OrderPanel
-                            {...{ currentPlayer: props.playerData, matchData: props.matchData }}
+                            {...{
+                                currentPlayer: props.playerData,
+                                matchData: props.matchData,
+                                commands
+                            }}
                         />
                     ) : (
                         ''

@@ -1,15 +1,8 @@
-export type MatchData = {
-    id: string;
-    board: BoardData;
-    player_1: PlayerData | null;
-    player_2: PlayerData | null;
-    active: boolean;
-};
-
-export type PlayerData = {
+export type ActionData = {
     id: string;
     name: string;
-    creatures: CreatureData[];
+    reach: string;
+    power: number;
 };
 
 export type BoardData = {
@@ -18,10 +11,11 @@ export type BoardData = {
     columns: PositionData[][];
 };
 
-export type PositionData = {
-    x: number;
-    y: number;
+export type CommandData = {
     creature: CreatureData;
+    move_target: PositionData;
+    action: ActionData;
+    action_target: PositionData;
 };
 
 export type CreatureData = {
@@ -34,5 +28,25 @@ export type CreatureData = {
     current_hp: number;
     attack: number;
     speed: number;
-    actions: [];
+    actions: ActionData[];
+};
+
+export type MatchData = {
+    id: string;
+    board: BoardData;
+    player_1: PlayerData | null;
+    player_2: PlayerData | null;
+    active: boolean;
+};
+
+export type PositionData = {
+    x: number;
+    y: number;
+    creature: CreatureData;
+};
+
+export type PlayerData = {
+    id: string;
+    name: string;
+    creatures: CreatureData[];
 };

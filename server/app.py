@@ -68,10 +68,7 @@ def join_match():
 def refresh_match():
     """Send match data and start match after both players have connected"""
     # TODO: implement for real - the current implementation is to test related functionality
-    player_name = session.get("player_name")
-    player = get_test_player_1() if player_name == "Safari" else get_test_player_2()
-    app.logger.debug(f"Finding active match of player {player.name}")
-    match = get_active_match_of_player(player)
+    match = get_match_from_session()
     publish_match_update(match)
     return Response(status=204) 
 
@@ -79,10 +76,8 @@ def refresh_match():
 def get_creature_moves(id):
     """Returns a list of possible moves for the creature"""
     # TODO: get creature from db by id instead of using mock
-    player_name = session.get("player_name")
-    player = get_test_player_1() if player_name == "Safari" else get_test_player_2()
-    match = get_active_match_of_player(player)
-    creature = next(c for c in match.player_1.creatures + match.player_2.creatures if c.nickname == id)
+    match = get_match_from_session()
+    creature = match.find_creature_in_match(id)
     positions = match.board.get_positions_in_range(creature.position, creature.speed)
     return jsonify([pos.to_simple_dict() for pos in positions])
     
@@ -95,6 +90,13 @@ def submit_commands():
     submit_command(player_id, commands, match_id)
     redis_connection.publish(TEST_MATCH_CHANNEL, f"player {player_id} commands submitted")
     return Response(status=204)
+
+def get_match_from_session():
+    # TODO: use database instead of test players
+    player_name = session.get("player_name")
+    player = get_test_player_1() if player_name == "Safari" else get_test_player_2()
+    app.logger.debug(f"Finding active match of player {player.name}")
+    return get_active_match_of_player(player)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
