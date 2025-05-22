@@ -22,6 +22,10 @@ class Match:
         print(self.board)
         sleep(0.5)
 
+    def find_creature_in_match(self, creature_id):
+        # TODO: use the creature's id instead of nickname
+        return next((c for c in self.player_1.creatures + self.player_2.creatures if c.nickname == creature_id), None)
+
     def init_creature_positions(self):
         """Place the players' creatures on the board when the game starts"""
         def init_player_creatures(player, y_pos):

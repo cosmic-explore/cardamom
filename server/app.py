@@ -72,7 +72,7 @@ def refresh_match():
     publish_match_update(match)
     return Response(status=204) 
 
-@app.route('/creature/moves/<id>', methods=['GET'])
+@app.route('/creatures/<id>/moves', methods=['GET'])
 def get_creature_moves(id):
     """Returns a list of possible moves for the creature"""
     # TODO: get creature from db by id instead of using mock
@@ -80,7 +80,28 @@ def get_creature_moves(id):
     creature = match.find_creature_in_match(id)
     positions = match.board.get_positions_in_range(creature.position, creature.speed)
     return jsonify([pos.to_simple_dict() for pos in positions])
-    
+
+@app.route('/creatures/<creature_id>/actions/<action_id>/targets', methods=['GET'])
+def get_action_targets(creature_id, action_id):
+    """Returns a list of valid targets for the action"""
+    app.logger.debug(f"searching for targets of action {action_id} from creature {creature_id}")
+    match = get_match_from_session()
+    creature = match.find_creature_in_match(creature_id)
+    action = creature.find_action_of_creature(action_id)
+    positions = match.board.get_positions_in_range(creature.position, action.reach)
+    return jsonify([pos.to_simple_dict() for pos in positions])
+    # get pos in range using the action's range and creature's position
+
+@app.route('/creatures/<creature_id>/actions/<action_id>/affected?target_x=<x>&target_y<y>', methods=['GET'])
+def get_action_affected(creature_id, action_id, x, y):
+    """Returns a list of positions affected by the action"""
+    match = get_match_from_session()
+    creature = match.find_creature_in_match(creature_id)
+    action = creature.find_action_of_creature(action_id)
+    target = match.board[int(x)][int(y)]
+    positions = action.get_affected_positions(creature.position, target)
+    return jsonify([pos.to_simple_dict() for pos in positions])
+
 @app.route('/match/submit', methods=['POST'])
 def submit_commands():
     request_data = request.get_json()

@@ -13,6 +13,7 @@ class Action:
             # no destination means that action affects all squares within range
             return board.get_positions_in_range(start, self.reach)
         else:
+            # currently actions affect all positions between the user and the target
             affected_positions = []
             remaining_reach = self.reach
             next_pos = board.get_next_pos_in_path(start, destination)
@@ -35,4 +36,4 @@ class Action:
         }
 
 def get_test_attack():
-    return Action("test attack", 1, 1)
+    return Action("test attack", 5, 1)

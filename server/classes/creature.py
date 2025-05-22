@@ -62,6 +62,10 @@ class Creature:
         if self.position is not None:
             self.set_position(None)
 
+    def find_action_of_creature(self, action_id):
+        # TODO: find action by id instead of name
+        return next((a for a in self.actions if a.name == action_id), None)
+
     def to_simple_dict(self):
         return {
             "id": str(self.id),
