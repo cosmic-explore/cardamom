@@ -1,15 +1,16 @@
-import { PositionData } from '../DataTypes';
-import { CreatureIcon } from './CreatureSprite';
+import { Card } from '@radix-ui/themes'
+import { PositionData } from '../DataTypes'
+import { CreatureIcon } from './CreatureSprite'
 
 // type DetailPanelProps {
 //     posData: PositionData
 // }
 
 export function DetailPanel(props: PositionData) {
-    const creature = props.creature;
+    const creature = props.creature
 
     return (
-        <div className="border p-5">
+        <Card className="border p-5">
             {creature ? (
                 <div>
                     <div className="flex">
@@ -29,6 +30,6 @@ export function DetailPanel(props: PositionData) {
             ) : (
                 ''
             )}
-        </div>
-    );
+        </Card>
+    )
 }

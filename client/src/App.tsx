@@ -1,44 +1,44 @@
-import { useState } from 'react';
-import './App.css';
-import { login, joinMatch, refreshMatch } from './utils/server-connection.tsx';
-import { Button } from '@radix-ui/themes';
-import { LoginPanel } from './components/LoginPanel.tsx';
-import { MatchPanel } from './components/MatchPanel.tsx';
-import { MatchData, PlayerData } from './DataTypes.tsx';
+import { useState } from 'react'
+import './App.css'
+import { login, joinMatch, refreshMatch } from './utils/server-connection.tsx'
+import { Button } from '@radix-ui/themes'
+import { LoginPanel } from './components/LoginPanel.tsx'
+import { MatchPanel } from './components/MatchPanel.tsx'
+import { MatchData, PlayerData } from './DataTypes.tsx'
 
 function App() {
-    const [playerData, setPlayerData] = useState<PlayerData>();
-    const [matchData, setMatchData] = useState<MatchData>();
+    const [playerData, setPlayerData] = useState<PlayerData>()
+    const [matchData, setMatchData] = useState<MatchData>()
 
     const handleLogin = (inputText: string) => {
         login(inputText).then((responseJson) => {
-            console.log(responseJson);
-            setPlayerData(responseJson);
-        });
-    };
+            console.log(responseJson)
+            setPlayerData(responseJson)
+        })
+    }
 
     const handleJoinMatch = () => {
         joinMatch().then((matchStream: EventSource) => {
             matchStream.onopen = () => {
-                console.log('connected to match stream');
-            };
+                console.log('connected to match stream')
+            }
             matchStream.onmessage = (event) => {
-                console.log('match event received');
-                const data = JSON.parse(JSON.parse(event.data));
-                console.log(data);
+                console.log('match event received')
+                const data = JSON.parse(JSON.parse(event.data))
+                console.log(data)
                 if (typeof data != 'number') {
-                    setMatchData(data);
+                    setMatchData(data)
                 } else {
-                    refreshMatch();
+                    refreshMatch()
                 }
-            };
+            }
             matchStream.onerror = (error) => {
-                console.log(error);
-                console.log('closing match stream');
-                matchStream.close();
-            };
-        });
-    };
+                console.log(error)
+                console.log('closing match stream')
+                matchStream.close()
+            }
+        })
+    }
 
     return (
         <>
@@ -61,7 +61,7 @@ function App() {
                 </div>
             </div>
         </>
-    );
+    )
 }
 
-export default App;
+export default App

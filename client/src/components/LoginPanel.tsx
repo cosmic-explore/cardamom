@@ -1,8 +1,8 @@
-import { Button, TextField } from '@radix-ui/themes';
-import { useState } from 'react';
+import { Button, TextField } from '@radix-ui/themes'
+import { useState } from 'react'
 
 export const LoginPanel = ({ onSubmit }: { onSubmit: Function }) => {
-    const [inputText, setInputText] = useState('');
+    const [inputText, setInputText] = useState('')
 
     return (
         <div className="flex">
@@ -14,5 +14,5 @@ export const LoginPanel = ({ onSubmit }: { onSubmit: Function }) => {
             />
             <Button onClick={() => onSubmit(inputText)}>Login</Button>
         </div>
-    );
-};
+    )
+}
