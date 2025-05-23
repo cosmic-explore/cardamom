@@ -22,10 +22,12 @@ The current state of the game can be interacted with by accessing the container 
 
 ### client
 
--   login
+-   ~~login~~
 -   ~~join game~~
 -   ~~display game~~
 -   play game
+-   real account authentication
+-   see open games
 -   everything else
 
 ### backend
