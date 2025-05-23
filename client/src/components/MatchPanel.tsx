@@ -20,23 +20,23 @@ import {
 } from '../utils/server-connection'
 import { arePositionsSame } from '../utils/game-utils'
 
+const fillBlankCommands = (playerData: PlayerData): CommandData[] => {
+    // TODO: replace this with loading the commands stored by the server
+    // ALSO: the playerdata should come from the match, not the logged-in player
+    return playerData.creatures.map((c) => {
+        return { action: null, action_target: null, creature: c, move_target: null }
+    })
+}
+
 export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData }) => {
     const [selectedPos, setSelectedPos] = useState<PositionData | null>(null)
     const [highlightedPosList, setHighlightedPosList] = useState<PositionData[]>([])
     const [commandMode, setCommandMode] = useState<string>('move')
-    const [currentAction, setCurrentAction] = useState<ActionData | null>(null)
-    const [commands, setCommands] = useState<CommandData[]>([])
+    const [commands, setCommands] = useState<CommandData[]>(fillBlankCommands(props.playerData))
 
     useEffect(() => {
         updatePositionHighlights()
-    }, [selectedPos, commandMode, currentAction, commands])
-
-    useEffect(() => {
-        if (currentAction === null && selectedPos?.creature) {
-            const command = getCreatureCommand(selectedPos.creature)
-            updateCommandTarget(command, null)
-        }
-    }, [currentAction])
+    }, [selectedPos, commandMode, commands])
 
     const updatePositionHighlights = () => {
         // TODO: use creature and action ids instead of name
@@ -62,7 +62,7 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                 }
             } else {
                 // commandMode === 'action'
-
+                const currentAction = getCurrentAction()
                 if (!currentAction) return
 
                 if (targetedPos === null) {
@@ -92,6 +92,14 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         }
     }
 
+    const getCurrentAction = (): ActionData | null => {
+        if (!selectedPos?.creature) {
+            return null
+        } else {
+            return getCreatureCommand(selectedPos.creature).action
+        }
+    }
+
     const getCreatureCommand = (creature: CreatureData): CommandData => {
         // TODO: use creature id instead of nickname
         let command = commands.find((c) => c.creature.nickname === creature.nickname)
@@ -106,13 +114,18 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         return command
     }
 
-    const updateCommandTarget = (updatingCommand: CommandData, newTarget: PositionData | null) => {
+    const updateCommand = (
+        updatingCommand: CommandData,
+        newTarget: PositionData | null,
+        action: ActionData | null
+    ) => {
         // removes the existing command for a creature and inserts the new one
         // TODO: use creature id instead of nickname
         if (commandMode === 'move') {
             updatingCommand.move_target = newTarget
         } else {
             // commandMode = 'action'
+            updatingCommand.action = action
             updatingCommand.action_target = newTarget
         }
 
@@ -142,12 +155,12 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
             if (targetedPos === null) {
                 if (isPositionIn(posData, highlightedPosList)) {
                     // set the target
-                    updateCommandTarget(command, posData)
+                    updateCommand(command, posData, command.action)
                     return
                 }
             } else if (arePositionsSame(posData, targetedPos)) {
                 // clear the target
-                updateCommandTarget(command, null)
+                updateCommand(command, null, command.action)
                 return
             }
         }
@@ -191,12 +204,11 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                                     currentPlayer: props.playerData,
                                     matchData: props.matchData,
                                     commandMode,
-                                    currentAction,
-                                    setCurrentAction,
                                     commands,
+                                    updateCommand,
                                     selectedPos,
-                                    boxClickFunc: handleOrderBoxClick,
-                                    setCommandMode: setCommandMode
+                                    setCommandMode,
+                                    boxClickFunc: handleOrderBoxClick
                                 }}
                             />
                             <div>Note: actions happen before moves</div>

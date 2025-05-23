@@ -4,8 +4,15 @@ import {
     REFRESH_MATCH,
     GET_CREATURE_MOVES,
     HOST_ROOT,
-    GET_CREATURE_MOVE_ROUTE
+    GET_CREATURE_MOVE_ROUTE,
+    SUBMIT_MATCH_COMMANDS
 } from '../constants/server-endpoints'
+import { CommandData } from '../DataTypes'
+
+type positionQueryParams = {
+    target_x: string
+    target_y: string
+}
 
 const buildPostRequest = (body: string): RequestInit => {
     return {
@@ -67,11 +74,6 @@ export const getActionTargets = async (creatureId: string, actionId: string) => 
     return response.json()
 }
 
-type positionQueryParams = {
-    target_x: string
-    target_y: string
-}
-
 export const getActionAffected = async (
     creatureId: string,
     actionId: string,
@@ -80,4 +82,10 @@ export const getActionAffected = async (
     const url = `${HOST_ROOT}/creatures/${creatureId}/actions/${actionId}/affected?${new URLSearchParams(queryParams)}`
     const response = await fetch(url, buildGetRequest())
     return response.json()
+}
+
+export const submitMatchCommands = async (commands: CommandData[]) => {
+    const requestBody = JSON.stringify({ commands })
+    const response = await fetch(SUBMIT_MATCH_COMMANDS, buildPostRequest(requestBody))
+    return response.ok
 }

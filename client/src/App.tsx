@@ -48,11 +48,7 @@ function App() {
                     {playerData ? <div>User: {playerData.name}</div> : ''}
                 </div>
                 <div className="grow-1">
-                    {matchData && playerData ? (
-                        <MatchPanel {...{ matchData: matchData, playerData: playerData }} />
-                    ) : (
-                        ''
-                    )}
+                    {matchData && playerData ? <MatchPanel {...{ matchData, playerData }} /> : ''}
                     {playerData && !matchData ? (
                         <Button onClick={handleJoinMatch}>Join Match</Button>
                     ) : (

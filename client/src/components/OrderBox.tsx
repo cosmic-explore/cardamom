@@ -1,17 +1,19 @@
 import { Box, Flex } from '@radix-ui/themes'
 import { Select } from 'radix-ui'
-
-import { ActionData, CommandData, CreatureData } from '../DataTypes'
+import { ActionData, CommandData, CreatureData, PositionData } from '../DataTypes'
 
 export type OrderBoxProps = {
     creature: CreatureData
     commandMode: string
-    command: CommandData | undefined
-    currentAction: ActionData | null
+    command: CommandData
     isSelected: boolean
     boxClickFunc: (data: CreatureData) => void
+    updateCommand: (
+        command: CommandData,
+        newTarget: PositionData | null,
+        action: ActionData | null
+    ) => void
     setCommandMode: (commandMode: string) => void
-    setCurrentAction: (action: ActionData | null) => void
 }
 
 export const OrderBox = (props: OrderBoxProps) => {
@@ -20,7 +22,7 @@ export const OrderBox = (props: OrderBoxProps) => {
 
     const handleActionChange = (actionName: string) => {
         const newAction = props.creature.actions.find((a) => a.name === actionName) || null
-        props.setCurrentAction(newAction)
+        props.updateCommand(props.command, null, newAction)
     }
 
     return (
@@ -45,7 +47,7 @@ export const OrderBox = (props: OrderBoxProps) => {
                         <div className="mr-1">Action</div>
                         <Box>
                             <Select.Root
-                                value={props.currentAction?.name || 'None'}
+                                value={props.command.action?.name || 'None'}
                                 onValueChange={(value) => handleActionChange(value)}
                             >
                                 <Select.Trigger

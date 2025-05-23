@@ -1,4 +1,5 @@
-import { Box, Button } from '@radix-ui/themes'
+import { Box, Button, ThickCheckIcon } from '@radix-ui/themes'
+import './select.css'
 import {
     ActionData,
     CommandData,
@@ -7,28 +8,50 @@ import {
     PlayerData,
     PositionData
 } from '../DataTypes'
-import './select.css'
 import { OrderBox } from './OrderBox'
+import { getActivePlayer } from '../utils/game-utils'
+import { submitMatchCommands } from '../utils/server-connection'
+import { useState } from 'react'
 
 export type OrderPanelProps = {
     matchData: MatchData
     currentPlayer: PlayerData
     commandMode: string
-    currentAction: ActionData | null
     commands: CommandData[]
     selectedPos: PositionData | null
     boxClickFunc: (data: CreatureData) => void
+    updateCommand: (
+        command: CommandData,
+        newTarget: PositionData | null,
+        action: ActionData | null
+    ) => void
     setCommandMode: (commandMode: string) => void
-    setCurrentAction: (action: ActionData | null) => void
 }
 
 export const OrderPanel = (props: OrderPanelProps) => {
+    const [submitted, setSubmitted] = useState<boolean>(false) // TODO: remove and get from parents
+
     const player = getActivePlayer(props.currentPlayer.name, props.matchData)
 
     const getCommandOfCreature = (creature: CreatureData) => {
-        return props.commands.find(
-            (command: CommandData) => command.creature.nickname == creature.nickname
+        return (
+            props.commands.find(
+                (command: CommandData) => command.creature.nickname == creature.nickname
+            ) || {
+                creature: creature,
+                move_target: null,
+                action: null,
+                action_target: null
+            }
         )
+    }
+
+    const handleCommandSubmission = () => {
+        submitMatchCommands(props.commands).then((responseOk) => {
+            if (responseOk) {
+                setSubmitted(true)
+            }
+        })
     }
 
     return (
@@ -41,25 +64,27 @@ export const OrderPanel = (props: OrderPanelProps) => {
                             creature,
                             commandMode: props.commandMode,
                             command: getCommandOfCreature(creature),
-                            currentAction: props.currentAction,
                             isSelected: props.selectedPos?.creature?.nickname === creature.nickname,
                             boxClickFunc: props.boxClickFunc,
-                            setCommandMode: props.setCommandMode,
-                            setCurrentAction: props.setCurrentAction
+                            updateCommand: props.updateCommand,
+                            setCommandMode: props.setCommandMode
                         }}
                         key={creature.id}
                     />
                 ))}
             </Box>
-            <Button>Submit</Button>
+            <div className="flex flex-row mt-3">
+                <Button style={{ cursor: 'pointer' }} onClick={() => handleCommandSubmission()}>
+                    Submit
+                </Button>
+                {submitted ? (
+                    <div className="text-green-600">
+                        <ThickCheckIcon />
+                    </div>
+                ) : (
+                    ''
+                )}
+            </div>
         </Box>
     )
-}
-
-const getActivePlayer = (playerName: string, matchData: MatchData) => {
-    if (matchData.player_1?.name == playerName) {
-        return matchData.player_1
-    } else if (matchData.player_2?.name == playerName) {
-        return matchData.player_2
-    }
 }

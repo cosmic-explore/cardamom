@@ -1,5 +1,15 @@
-import { PositionData } from '../DataTypes'
+import { MatchData, PlayerData, PositionData } from '../DataTypes'
 
 export const arePositionsSame = (pos1: PositionData, pos2: PositionData): boolean => {
     return pos1.x === pos2.x && pos1.y === pos2.y
+}
+
+export const getActivePlayer = (playerName: string, matchData: MatchData) => {
+    // TODO: use player ids instead of names
+    if (matchData.player_1?.name == playerName) {
+        return matchData.player_1
+    } else {
+        // there are only two players
+        return matchData.player_2
+    }
 }
