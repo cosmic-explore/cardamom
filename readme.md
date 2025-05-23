@@ -23,8 +23,8 @@ The current state of the game can be interacted with by accessing the container 
 ### client
 
 -   login
--   join game
--   display game
+-   ~~join game~~
+-   ~~display game~~
 -   play game
 -   everything else
 
