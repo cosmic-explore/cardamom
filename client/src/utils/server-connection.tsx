@@ -3,7 +3,8 @@ import {
     JOIN_MATCH,
     REFRESH_MATCH,
     GET_CREATURE_MOVES,
-    HOST_ROOT
+    HOST_ROOT,
+    GET_CREATURE_MOVE_ROUTE
 } from '../constants/server-endpoints'
 
 const buildPostRequest = (body: string): RequestInit => {
@@ -47,6 +48,15 @@ export const refreshMatch = async () => {
 
 export const getCreatureMoves = async (creatureId: string) => {
     const url = `${GET_CREATURE_MOVES[0]}/${creatureId}/${GET_CREATURE_MOVES[1]}`
+    const response = await fetch(url, buildGetRequest())
+    return response.json()
+}
+
+export const getCreatureMoveRoute = async (
+    creatureId: string,
+    queryParams: positionQueryParams
+) => {
+    const url = `${GET_CREATURE_MOVE_ROUTE[0]}/${creatureId}/${GET_CREATURE_MOVE_ROUTE[1]}?${new URLSearchParams(queryParams)}`
     const response = await fetch(url, buildGetRequest())
     return response.json()
 }

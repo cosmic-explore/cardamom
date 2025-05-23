@@ -14,6 +14,7 @@ import { DetailPanel } from './DetailPanel'
 import {
     getActionAffected,
     getActionTargets,
+    getCreatureMoveRoute,
     getCreatureMoves,
     refreshMatch
 } from '../utils/server-connection'
@@ -28,26 +29,34 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
 
     useEffect(() => {
         updatePositionHighlights()
-    }, [selectedPos])
-
-    useEffect(() => {
-        updatePositionHighlights()
-    }, [commandMode])
+    }, [selectedPos, commandMode, currentAction, commands])
 
     const updatePositionHighlights = () => {
+        // TODO: use creature and action ids instead of name
         // highlight the appropriate positions if a creature is selected
+        setHighlightedPosList([])
         const creature = selectedPos?.creature
+
         if (creature != null) {
+            const targetedPos = getTargetedPos()
             if (commandMode === 'move') {
-                // ask the server for the possible moves
-                getCreatureMoves(creature.nickname).then((response) => {
-                    setHighlightedPosList(response)
-                })
+                if (targetedPos === null) {
+                    // ask the server for the possible moves
+                    getCreatureMoves(creature.nickname).then((response) => {
+                        setHighlightedPosList(response)
+                    })
+                } else {
+                    getCreatureMoveRoute(creature.nickname, {
+                        target_x: targetedPos?.x.toString(),
+                        target_y: targetedPos.y.toString()
+                    }).then((response) => {
+                        setHighlightedPosList(response)
+                    })
+                }
             } else {
                 // commandMode === 'action'
-                setHighlightedPosList([])
-                const targetedPos = getTargetedPos()
 
+                // TODO: use the selected action
                 const actionName = 'test attack'
                 if (targetedPos === null) {
                     // show all the positions in range to target
@@ -64,8 +73,6 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                     })
                 }
             }
-        } else {
-            setHighlightedPosList([])
         }
     }
 
@@ -134,7 +141,6 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
             } else if (arePositionsSame(posData, targetedPos)) {
                 // clear the target
                 updateCommandTarget(command, null)
-                updatePositionHighlights()
                 return
             }
         }
