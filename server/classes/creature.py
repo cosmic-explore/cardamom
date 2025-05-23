@@ -1,5 +1,9 @@
+import logging
+
 from uuid import uuid4
 from .species import get_test_species
+
+logging.basicConfig(level=logging.DEBUG)
 
 class Creature:
     def __init__(self, species_id, player_id, level, nickname, id=None):
@@ -40,7 +44,7 @@ class Creature:
             self.__position = None
             old_position.set_creature(None)
         elif new_position.creature is not None and new_position.creature is not self:
-            print("Space is occupied")
+            logging.debug("Space is occupied")
         else:
             old_position = self.position
             self.__position = new_position
@@ -65,6 +69,23 @@ class Creature:
     def find_action_of_creature(self, action_id):
         # TODO: find action by id instead of name
         return next((a for a in self.actions if a.name == action_id), None)
+    
+    def get_planned_move_path(self, destination):
+        board = self.position.board
+        path = []
+        remaining_speed = self.speed
+
+        def find_path(board, path, current_pos, remaining_speed):
+            next_pos = board.get_next_pos_in_path(current_pos, destination)
+            if remaining_speed == 0 or next_pos is None:
+                return path
+            else:
+                path.append(next_pos)
+                remaining_speed -= 1
+                return find_path(board, path, next_pos, remaining_speed)
+            
+        return find_path(board, path, self.position, remaining_speed)
+
 
     def to_simple_dict(self):
         return {

@@ -81,6 +81,18 @@ def get_creature_moves(id):
     positions = match.board.get_positions_in_range(creature.position, creature.speed)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
+@app.route('/creatures/<id>/moves/route', methods=['GET'])
+def get_move_route(id):
+    x_pos = int(request.args.get("target_x"))
+    y_pos = int(request.args.get("target_y"))
+    app.logger.debug(f"searching for route of creature {id} to {x_pos},{y_pos}")
+    match = get_match_from_session()
+    creature = match.find_creature_in_match(id)
+    destination = match.board[x_pos][y_pos]
+    positions = creature.get_planned_move_path(destination)
+    return jsonify([pos.to_simple_dict() for pos in positions])
+    
+
 @app.route('/creatures/<creature_id>/actions/<action_id>/targets', methods=['GET'])
 def get_action_targets(creature_id, action_id):
     """Returns a list of valid targets for the action"""
