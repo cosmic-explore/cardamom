@@ -19,6 +19,7 @@ export type OrderPanelProps = {
     selectedPos: PositionData | null
     boxClickFunc: (data: CreatureData) => void
     setCommandMode: (commandMode: string) => void
+    setCurrentAction: (action: ActionData | null) => void
 }
 
 export const OrderPanel = (props: OrderPanelProps) => {
@@ -40,9 +41,11 @@ export const OrderPanel = (props: OrderPanelProps) => {
                             creature,
                             commandMode: props.commandMode,
                             command: getCommandOfCreature(creature),
+                            currentAction: props.currentAction,
                             isSelected: props.selectedPos?.creature?.nickname === creature.nickname,
                             boxClickFunc: props.boxClickFunc,
-                            setCommandMode: props.setCommandMode
+                            setCommandMode: props.setCommandMode,
+                            setCurrentAction: props.setCurrentAction
                         }}
                         key={creature.id}
                     />

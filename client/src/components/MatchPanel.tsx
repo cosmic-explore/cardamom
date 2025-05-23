@@ -31,6 +31,13 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         updatePositionHighlights()
     }, [selectedPos, commandMode, currentAction, commands])
 
+    useEffect(() => {
+        if (currentAction === null && selectedPos?.creature) {
+            const command = getCreatureCommand(selectedPos.creature)
+            updateCommandTarget(command, null)
+        }
+    }, [currentAction])
+
     const updatePositionHighlights = () => {
         // TODO: use creature and action ids instead of name
         // highlight the appropriate positions if a creature is selected
@@ -56,16 +63,16 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
             } else {
                 // commandMode === 'action'
 
-                // TODO: use the selected action
-                const actionName = 'test attack'
+                if (!currentAction) return
+
                 if (targetedPos === null) {
                     // show all the positions in range to target
-                    getActionTargets(creature.nickname, actionName).then((response) => {
+                    getActionTargets(creature.nickname, currentAction.name).then((response) => {
                         setHighlightedPosList(response)
                     })
                 } else {
                     // show all the positions that will be affected by the action
-                    getActionAffected(creature.nickname, actionName, {
+                    getActionAffected(creature.nickname, currentAction.name, {
                         target_x: targetedPos?.x.toString(),
                         target_y: targetedPos.y.toString()
                     }).then((response) => {
@@ -185,6 +192,7 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                                     matchData: props.matchData,
                                     commandMode,
                                     currentAction,
+                                    setCurrentAction,
                                     commands,
                                     selectedPos,
                                     boxClickFunc: handleOrderBoxClick,
