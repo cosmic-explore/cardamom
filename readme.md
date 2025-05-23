@@ -18,7 +18,7 @@ The current state of the game can be interacted with by accessing the container 
 
 ### general
 
--   code linting
+-   host project
 
 ### client
 
@@ -34,8 +34,13 @@ The current state of the game can be interacted with by accessing the container 
 
 -   ~~add basic game logic: matches, players, creatures, winning~~
 -   ~~use redis pub/sub to alert players when a turn has progressed~~
--   server routes to communicate with client
+-   ~~server routes to communicate with client~~
 -   oauth authentication for players
 -   seed database
 -   connect server with the postgres database
 -   tests
+
+### development todos
+
+-   ~~frontend linting~~
+-   backend linting
