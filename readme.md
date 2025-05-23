@@ -12,7 +12,8 @@ You can run `docker exec -it container-name bash` (replace the container-name) t
 
 ### Running
 
-The current state of the game can be interacted with by accessing the container that hosts the flask server and running `game_logic/draft_game.py`.
+Navigate to the client at [localhost:5173](http://localhost:5173) and then login with a username of your choice to interact with the UI.
+You can script games for testing by accessing the container that hosts the flask server and editing/running `game_logic/draft_game.py`.
 
 # Todo
 
