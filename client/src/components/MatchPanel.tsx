@@ -18,21 +18,25 @@ import {
     getCreatureMoves,
     refreshMatch
 } from '../utils/server-connection'
-import { arePositionsSame } from '../utils/game-utils'
+import { arePositionsSame, getActivePlayer } from '../utils/game-utils'
 
-const fillBlankCommands = (playerData: PlayerData): CommandData[] => {
+const fillBlankCommands = (matchData: MatchData, playerName: string): CommandData[] => {
     // TODO: replace this with loading the commands stored by the server
-    // ALSO: the playerdata should come from the match, not the logged-in player
-    return playerData.creatures.map((c) => {
-        return { action: null, action_target: null, creature: c, move_target: null }
-    })
+    const playerData = getActivePlayer(playerName, matchData)
+    return playerData
+        ? playerData.creatures.map((c) => {
+              return { action: null, action_target: null, creature: c, move_target: null }
+          })
+        : []
 }
 
 export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData }) => {
     const [selectedPos, setSelectedPos] = useState<PositionData | null>(null)
     const [highlightedPosList, setHighlightedPosList] = useState<PositionData[]>([])
     const [commandMode, setCommandMode] = useState<string>('move')
-    const [commands, setCommands] = useState<CommandData[]>(fillBlankCommands(props.playerData))
+    const [commands, setCommands] = useState<CommandData[]>(
+        fillBlankCommands(props.matchData, props.playerData.name)
+    )
 
     useEffect(() => {
         updatePositionHighlights()

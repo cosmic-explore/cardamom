@@ -43,7 +43,7 @@ export type MatchData = {
 export type PositionData = {
     x: number
     y: number
-    creature: CreatureData
+    creature: CreatureData | null
 }
 
 export type PlayerData = {
