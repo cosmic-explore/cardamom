@@ -29,6 +29,8 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~play game~~
 -   show when other player's commands are submitted and when the user's have cleared
 -   show when game is over
+-   play out turns in real time before showing final result
+-   let user replay the current turn
 -   real account authentication
 -   see open games
 -   everything else
@@ -38,6 +40,7 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~add basic game logic: matches, players, creatures, winning~~
 -   ~~use redis pub/sub to alert players when a turn has progressed~~
 -   ~~server routes to communicate with client~~
+-   store each match tick
 -   connect server with the postgres database and remove all mocked code
 -   seed database
 -   connect server with the postgres database
