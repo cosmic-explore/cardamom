@@ -35,9 +35,7 @@ export const OrderPanel = (props: OrderPanelProps) => {
 
     const getCommandOfCreature = (creature: CreatureData) => {
         return (
-            props.commands.find(
-                (command: CommandData) => command.creature.nickname == creature.nickname
-            ) || {
+            props.commands.find((command: CommandData) => command.creature.id == creature.id) || {
                 creature: creature,
                 move_target: null,
                 action: null,
@@ -64,7 +62,7 @@ export const OrderPanel = (props: OrderPanelProps) => {
                             creature,
                             commandMode: props.commandMode,
                             command: getCommandOfCreature(creature),
-                            isSelected: props.selectedPos?.creature?.nickname === creature.nickname,
+                            isSelected: props.selectedPos?.creature_id === creature.id,
                             boxClickFunc: props.boxClickFunc,
                             updateCommand: props.updateCommand,
                             setCommandMode: props.setCommandMode

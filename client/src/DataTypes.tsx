@@ -38,12 +38,13 @@ export type MatchData = {
     player_1: PlayerData | null
     player_2: PlayerData | null
     active: boolean
+    turn_number: number
 }
 
 export type PositionData = {
     x: number
     y: number
-    creature: CreatureData | null
+    creature_id: string | null
 }
 
 export type PlayerData = {

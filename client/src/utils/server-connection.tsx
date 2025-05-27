@@ -85,12 +85,6 @@ export const getActionAffected = async (
 }
 
 export const submitMatchCommands = async (commands: CommandData[]) => {
-    // remove circular reference between creature and position
-    commands = commands.map((c) => {
-        c.creature.position.creature = null
-        return c
-    })
-
     const requestBody = JSON.stringify({ commands })
     const response = await fetch(SUBMIT_MATCH_COMMANDS, buildPostRequest(requestBody))
     return response.ok

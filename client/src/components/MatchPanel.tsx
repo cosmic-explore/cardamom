@@ -18,7 +18,7 @@ import {
     getCreatureMoves,
     refreshMatch
 } from '../utils/server-connection'
-import { arePositionsSame, getActivePlayer } from '../utils/game-utils'
+import { arePositionsSame, getActivePlayer, getMatchCreature } from '../utils/game-utils'
 
 const fillBlankCommands = (matchData: MatchData, playerName: string): CommandData[] => {
     // TODO: replace this with loading the commands stored by the server
@@ -42,22 +42,29 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         updatePositionHighlights()
     }, [selectedPos, commandMode, commands])
 
+    useEffect(() => {
+        // runs only when there is an update for the match
+        setCommands(fillBlankCommands(props.matchData, props.playerData.name))
+        setSelectedPos(null)
+        updatePositionHighlights()
+    }, [props.matchData])
+
     const updatePositionHighlights = () => {
-        // TODO: use creature and action ids instead of name
+        // TODO: use action id instead of name
         // highlight the appropriate positions if a creature is selected
         setHighlightedPosList([])
-        const creature = selectedPos?.creature
 
-        if (creature != null) {
+        if (selectedPos?.creature_id != null) {
+            const creature = getCreatureFromId(selectedPos.creature_id)
             const targetedPos = getTargetedPos()
             if (commandMode === 'move') {
                 if (targetedPos === null) {
                     // ask the server for the possible moves
-                    getCreatureMoves(creature.nickname).then((response) => {
+                    getCreatureMoves(creature.id).then((response) => {
                         setHighlightedPosList(response)
                     })
                 } else {
-                    getCreatureMoveRoute(creature.nickname, {
+                    getCreatureMoveRoute(creature.id, {
                         target_x: targetedPos?.x.toString(),
                         target_y: targetedPos.y.toString()
                     }).then((response) => {
@@ -71,12 +78,12 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
 
                 if (targetedPos === null) {
                     // show all the positions in range to target
-                    getActionTargets(creature.nickname, currentAction.name).then((response) => {
+                    getActionTargets(creature.id, currentAction.name).then((response) => {
                         setHighlightedPosList(response)
                     })
                 } else {
                     // show all the positions that will be affected by the action
-                    getActionAffected(creature.nickname, currentAction.name, {
+                    getActionAffected(creature.id, currentAction.name, {
                         target_x: targetedPos?.x.toString(),
                         target_y: targetedPos.y.toString()
                     }).then((response) => {
@@ -87,26 +94,34 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         }
     }
 
+    const getCreatureFromId = (creatureId: string): CreatureData => {
+        const creature = getMatchCreature(props.matchData, creatureId)
+        if (creature) {
+            return creature
+        } else {
+            throw new Error(`Could not find creature with ID ${creatureId} in match!`)
+        }
+    }
+
     const getTargetedPos = (): PositionData | null => {
-        if (!selectedPos?.creature) {
+        if (!selectedPos?.creature_id) {
             return null
         } else {
-            const command = getCreatureCommand(selectedPos.creature)
+            const command = getCreatureCommand(getCreatureFromId(selectedPos.creature_id))
             return commandMode === 'move' ? command.move_target : command.action_target
         }
     }
 
     const getCurrentAction = (): ActionData | null => {
-        if (!selectedPos?.creature) {
+        if (!selectedPos?.creature_id) {
             return null
         } else {
-            return getCreatureCommand(selectedPos.creature).action
+            return getCreatureCommand(getCreatureFromId(selectedPos.creature_id)).action
         }
     }
 
     const getCreatureCommand = (creature: CreatureData): CommandData => {
-        // TODO: use creature id instead of nickname
-        let command = commands.find((c) => c.creature.nickname === creature.nickname)
+        let command = commands.find((c) => c.creature.id === creature.id)
         if (!command) {
             command = {
                 creature,
@@ -124,7 +139,6 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         action: ActionData | null
     ) => {
         // removes the existing command for a creature and inserts the new one
-        // TODO: use creature id instead of nickname
         if (commandMode === 'move') {
             updatingCommand.move_target = newTarget
         } else {
@@ -133,16 +147,13 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
             updatingCommand.action_target = newTarget
         }
 
-        const newCommands = commands.filter(
-            (c) => c.creature.nickname !== updatingCommand.creature.nickname
-        )
+        const newCommands = commands.filter((c) => c.creature.id !== updatingCommand.creature.id)
         newCommands.push(updatingCommand)
         setCommands(newCommands)
     }
 
-    const isOwnedCreature = (creature: CreatureData): boolean => {
-        // TODO: use creature id instead of nickname
-        return props.playerData.creatures.some((c) => c.nickname === creature.nickname)
+    const isOwnedCreature = (creature_id: string): boolean => {
+        return props.playerData.creatures.some((c) => c.id === creature_id)
     }
 
     const isPositionIn = (pos: PositionData, posList: PositionData[]): boolean => {
@@ -152,8 +163,8 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
     const handlePosClick = async (posData: PositionData) => {
         // if the position of one of the player's creatures is selected, set a target of its
         // command if the clicked position is within the command's range
-        if (selectedPos?.creature && isOwnedCreature(selectedPos.creature)) {
-            const command = getCreatureCommand(selectedPos.creature)
+        if (selectedPos?.creature_id && isOwnedCreature(selectedPos.creature_id)) {
+            const command = getCreatureCommand(getCreatureFromId(selectedPos.creature_id))
             const targetedPos = getTargetedPos()
 
             if (targetedPos === null) {
@@ -173,7 +184,7 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
     }
 
     const handleOrderBoxClick = (creature: CreatureData) => {
-        creature.position.creature = creature
+        creature.position.creature_id = creature.id
         setSelectedPos(creature.position)
     }
 
@@ -181,6 +192,7 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         <div className="flex flex-row">
             <div className="flex flex-col items-center">
                 <div className="mb-1">{props.matchData.id}</div>
+                <div>Turn {props.matchData.turn_number}</div>
                 <div className="flex flex-row mb-3">
                     <div>Player 1: {props.matchData.player_1?.name}</div>
                     <div className="pl-8 pr-8" />
@@ -188,7 +200,7 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                 </div>
                 <Board
                     {...{
-                        boardData: props.matchData.board,
+                        matchData: props.matchData,
                         selectedPos,
                         highlightedPosList,
                         handlePosClick,
@@ -199,9 +211,21 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
             <div className="flex flex-col grow-1 items-center">
                 <div className="flex flex-row">
                     <div className="mr-5">
-                        {selectedPos ? <DetailPanel {...selectedPos} /> : ''}
+                        {selectedPos ? (
+                            <DetailPanel
+                                {...{
+                                    position: selectedPos,
+                                    creature: getMatchCreature(
+                                        props.matchData,
+                                        selectedPos.creature_id
+                                    )
+                                }}
+                            />
+                        ) : (
+                            ''
+                        )}
                     </div>
-                    {props.playerData && props.matchData ? (
+                    {props.playerData && props.matchData.player_2 ? (
                         <div>
                             <OrderPanel
                                 {...{
