@@ -18,7 +18,7 @@ class Match:
         self.active = active
 
     def remove_fainted_commands(commands):
-        return [command for command in commands if not command.creature.is_fainted]
+        return [command for command in commands if not command.creature.is_fainted and command.move_target is not None]
 
     def display_game(self):
         logging.debug(f"Turn {self.turn_number}")
@@ -60,12 +60,11 @@ class Match:
         def perform_action(command):
             if command.creature.is_fainted or command.action is None:
                 return
-            logging.debug(command.creature.to_simple_dict())
             for pos in command.action.get_affected_positions(command.creature.position, command.action_target):
                 if pos.creature_id is not None and pos.creature_id != command.creature.id:
                     receiver = self.find_creature_in_match(pos.creature_id)
                     receiver.receive_action(command.action)
-                    logging.debug("hit")
+                    logging.debug(f"{receiver.nickname} is hit")
                     if receiver.is_fainted:
                         logging.debug("knock out")
 
