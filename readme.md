@@ -19,14 +19,16 @@ You can script games for testing by accessing the container that hosts the flask
 
 ### general
 
--   host project
+-   host project in a playable state
 
 ### client
 
 -   ~~login~~
 -   ~~join game~~
 -   ~~display game~~
--   play game
+-   ~~play game~~
+-   show when other player's commands are submitted and when the user's have cleared
+-   show when game is over
 -   real account authentication
 -   see open games
 -   everything else
@@ -36,7 +38,7 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~add basic game logic: matches, players, creatures, winning~~
 -   ~~use redis pub/sub to alert players when a turn has progressed~~
 -   ~~server routes to communicate with client~~
--   oauth authentication for players
+-   connect server with the postgres database and remove all mocked code
 -   seed database
 -   connect server with the postgres database
 -   tests
@@ -45,3 +47,4 @@ You can script games for testing by accessing the container that hosts the flask
 
 -   ~~frontend linting~~
 -   backend linting
+-   deployment pipeline
