@@ -63,17 +63,17 @@ class Creature:
         # this function's responsibility is to ensure that position.creature_id
         # and creature.position always correspond.
 
-        # prevent invalid moves
-        
-        if new_position.creature_id is not None and new_position.creature_id != self.id:
-            logging.debug("Position is occupied")
-        
         # handle creature being removed from board
 
-        elif new_position is None:
+        if new_position is None:
             old_position = self.position
             self.__position = None
             old_position.set_creature_id(None)
+
+        # prevent invalid moves
+        
+        elif new_position.creature_id is not None and new_position.creature_id != self.id:
+            logging.debug("Position is occupied")
 
         # handle a valid move
 
