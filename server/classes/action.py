@@ -7,6 +7,10 @@ class Action:
         self.reach = reach
         self.power = power
 
+    @classmethod
+    def from_dict(cls, action_dict):
+        return Action(action_dict["name"], action_dict["reach"], action_dict["power"], id=action_dict["id"])
+
     def get_affected_positions(self, start, destination):
         board = start.board
         if destination is None:

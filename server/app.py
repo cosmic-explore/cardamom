@@ -6,8 +6,9 @@ from flask_session import Session
 from flask_cors import CORS
 from constants import TEST_MATCH_CHANNEL
 from classes.player import get_test_player_1, get_test_player_2
-from game_logic.command_handler import command_from_dict, submit_command
+from game_logic.command_handler import submit_commands
 from game_logic.match_handler import attempt_join_match, get_active_match_of_player, start_match, publish_match_update
+from classes.command import Command
 
 app = Flask(__name__)
 
@@ -58,7 +59,7 @@ def join_match():
     player = get_test_player_1() if player_name == "Safari" else get_test_player_2()
     match = attempt_join_match(player)
     if match is not None:
-        if match.player_1 is not None and match.player_2 is not None:
+        if match.player_1 is not None and match.player_2 is not None and match and match.turn_number == 0:
             start_match(match)
         return Response(event_stream(TEST_MATCH_CHANNEL), mimetype="text/event-stream")
     else:
@@ -92,7 +93,6 @@ def get_move_route(id):
     positions = creature.get_planned_move_path(destination)
     return jsonify([pos.to_simple_dict() for pos in positions])
     
-
 @app.route('/creatures/<creature_id>/actions/<action_id>/targets', methods=['GET'])
 def get_action_targets(creature_id, action_id):
     """Returns a list of valid targets for the action"""
@@ -116,19 +116,25 @@ def get_action_affected(creature_id, action_id):
     return jsonify([pos.to_simple_dict() for pos in positions])
 
 @app.route('/match/submit', methods=['POST'])
-def submit_commands():
+def submit_match_commands():
     request_data = request.get_json()
-    commands = command_from_dict(request_data["commands"])
-    player_id = request_data["player_id"]
-    match_id = request_data["match_id"]
-    submit_command(player_id, commands, match_id)
-    redis_connection.publish(TEST_MATCH_CHANNEL, f"player {player_id} commands submitted")
+    match = get_match_from_session()
+    player = get_player_from_session()
+    app.logger.debug(f"Received commands for {player.name} for match {match.id}")
+    app.logger.debug(request_data["commands"])
+    commands = [Command.from_dict_and_match(c, match) for c in request_data["commands"]]
+    submit_commands(match.get_player_number(player), commands, match)
+    # TODO: use the channel of the player's match
+    redis_connection.publish(TEST_MATCH_CHANNEL, f"player {player.id} commands submitted")
     return Response(status=204)
 
-def get_match_from_session():
+def get_player_from_session():
     # TODO: use database instead of test players
     player_name = session.get("player_name")
-    player = get_test_player_1() if player_name == "Safari" else get_test_player_2()
+    return get_test_player_1() if player_name == "Safari" else get_test_player_2()
+
+def get_match_from_session():
+    player = get_player_from_session()
     app.logger.debug(f"Finding active match of player {player.name}")
     return get_active_match_of_player(player)
 

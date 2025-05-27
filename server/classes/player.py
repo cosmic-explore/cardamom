@@ -20,11 +20,11 @@ class Player:
         }
     
 def get_test_player_1():
-    player = Player("Safari")
-    player.creatures.append(get_test_creature("A"))
+    player = Player("Safari", id="TEST_USER_1")
+    player.creatures.append(get_test_creature("A", player_id=player.id, id="test_creature_1"))
     return player
 
 def get_test_player_2():
-    player = Player("Firehawk")
-    player.creatures.append(get_test_creature("B"))
+    player = Player("Firehawk", id="TEST_USER_2")
+    player.creatures.append(get_test_creature("B", player_id=player.id, id="test_creature_2"))
     return player

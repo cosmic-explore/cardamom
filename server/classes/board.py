@@ -17,7 +17,7 @@ class Board:
     
     def __str__(self):
         def position_str(pos):
-            return '[ ]' if pos.creature is None else f'[{pos.creature.nickname}]'
+            return '[ ]' if pos.creature_id is None else f'[X]'
         
         board_representation = ''
 

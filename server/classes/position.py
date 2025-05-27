@@ -1,35 +1,37 @@
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 class Position:
     def __init__(self, board, x, y):
         self.board = board
         self.x = x
         self.y = y
-        self.__creature = None
+        self.__creature_id = None
 
     @property
-    def creature(self):
-        return self.__creature
+    def creature_id(self):
+        return self.__creature_id
 
     def __str__(self):
-        return f'[{self.x},{self.y},{" " if self.creature is None else self.creature.nickname}]'
+        return f'[{self.x},{self.y},{" " if self.creature_id is None else "X"}]'
     
-    def set_creature(self, new_creature):
-        # it's this function's responsibility to ensure that position.creature
-        # and creature.position always correspond.
+    def is_same(self, position):
+        """Assumes the compared position belongs to the same board"""
+        return self.x == position.x and self.y == position.y
 
-        if self.creature is None:
-            if new_creature is not None:
-                self.__creature = new_creature
-                new_creature.set_position(self)
-        elif new_creature is None:
-            if self.__creature.position is self:
-                # the position is trying to clear without moving its creature first
-                raise Exception("Dangling Creature")
-            self.__creature = None
+    def set_creature_id(self, new_creature_id):
+        """This func should only be called by Creature.set_position"""
+
+        if self.creature_id is None:
+            self.__creature_id = new_creature_id
+        elif new_creature_id is None:
+            # Note: the creature's position should already be set to this one
+            self.__creature_id = new_creature_id
+        elif self.creature_id == new_creature_id:
+            self.__creature_id = new_creature_id
         else:
-            if new_creature is self.creature:
-                return
-            print("Position is already occupied")
-            return
+            logging.debug("Warnimg: tried to place creature on a non-empty Position")
 
     def get_adjacent_positions(self):
         low_bound_x = max(self.x - 1, 0)
@@ -52,6 +54,6 @@ class Position:
         return {
             "x": self.x,
             "y": self.y,
-            "creature": None if self.creature is None else self.creature.to_simple_dict()
+            "creature_id": self.creature_id
         }
     

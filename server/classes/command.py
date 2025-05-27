@@ -1,3 +1,10 @@
+import logging
+
+from .creature import Creature
+from .action import Action
+
+logging.basicConfig(level=logging.DEBUG)
+
 class Command:
     def __init__(self, creature, move_target, action, action_target):
         self.creature = creature
@@ -5,6 +12,22 @@ class Command:
         self.moves_remaining = creature.speed
         self.action = action
         self.action_target = action_target
+
+    @classmethod
+    def from_dict_and_match(cls, command_dict, match):
+        move_target = command_dict["move_target"]
+        if move_target is not None:
+            move_target = match.board[move_target["x"]][move_target["y"]]
+        action_target = command_dict["action_target"]
+        if action_target is not None:
+            action_target = match.board[action_target["x"]][action_target["y"]]
+        
+        return Command(
+            Creature.from_dict(command_dict["creature"], match=match),
+            move_target,
+            None if command_dict["action"] is None else Action.from_dict(command_dict["action"]),
+            action_target
+        )
 
     def get_next_move(self):
         if self.moves_remaining >= 1:
@@ -21,15 +44,10 @@ class Command:
         """Aids the JSON serialization of Command objects. Expects to be called
         like json.dumps(command.to_simple_dict())."""
         return {
-            "creature_id": str(self.creature.id),
-            "move_target": None if self.move_target is None else {
-                "x": self.move_target.x,
-                "y": self.move_target.y
-            },
+            # TODO: only store the ids of the creature and action when the DB is in place
+            "creature": self.creature.to_simple_dict(),
+            "move_target": None if self.move_target is None else self.move_target.to_simple_dict(),
             "moves_remaining": self.moves_remaining,
-            "action_id": str(self.action.id),
-            "action_target": None if self.action_target is None else {
-                "x": self.action_target.x,
-                "y": self.action_target.y
-            }
+            "action": None if self.action is None else self.action.to_simple_dict(),
+            "action_target":None if self.action_target is None else self.action_target.to_simple_dict()
         }

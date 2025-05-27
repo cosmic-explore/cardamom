@@ -14,7 +14,7 @@ redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=T
 def initialize_match(player_1, player_2, match_id=TEST_MATCH_ID):
     """Initialize a match and cache it in redis"""
     board = Board(10, 10)
-    match = Match(board, player_1, player_2)
+    match = Match(board, player_1, player_2, turn_number=0)
     update_match_redis(match)
     clear_match_commands(match_id)
     return match
@@ -22,6 +22,8 @@ def initialize_match(player_1, player_2, match_id=TEST_MATCH_ID):
 def start_match(match):
     """place creatures and inform players the match has started"""
     match.init_creature_positions()
+    match.turn_number = 1
+    update_match_redis(match)
     redis_connection.publish(TEST_MATCH_CHANNEL, f"Match Start")
     publish_match_update(match)
 
@@ -32,8 +34,8 @@ def update_match_redis(match):
     redis_connection.set(str(match.id), json.dumps(match.to_simple_dict()))
 
 def publish_match_update(match):
-    logging.debug(f"publishing match update on channel {TEST_MATCH_CHANNEL}")
     update_match_redis(match)
+    logging.debug(f"publishing match update on channel {TEST_MATCH_CHANNEL}")
     redis_connection.publish(TEST_MATCH_CHANNEL, redis_connection.get(match.id))
 
 def clear_match_commands(match_id):
@@ -52,6 +54,7 @@ def attempt_join_match(player, match_id=TEST_MATCH_ID):
         logging.debug(f"{player.name} is already in a match")
         return match
     
+    # join the test match
     match = get_active_match_by_id(match_id)
     if match is None:
         logging.debug("creating new match")
@@ -68,11 +71,11 @@ def attempt_join_match(player, match_id=TEST_MATCH_ID):
 def get_active_match_of_player(player):
     """Returns the active match of the player"""
     # TODO: implement for real - the current implementation is to test related functionality
-    test_match = get_active_match_by_id(TEST_MATCH_ID)
-    if test_match.player_1 is not None and test_match.player_1.name == player.name:
-        return test_match
-    elif test_match.player_2 is not None and test_match.player_2.name == player.name:
-        return test_match
+    match = get_active_match_by_id(TEST_MATCH_ID)
+    if match is None:
+        return match
+    elif match.is_player_in_match(player):
+        return match
     else:
         return None
 

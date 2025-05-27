@@ -33,27 +33,62 @@ class Creature:
         self.speed = species.base_speed
         self.actions = species.actions
 
+    @classmethod
+    def from_dict(cls, creature_dict, match=None, board=None):
+        if match is not None:
+            # get the creature from the match data
+            return match.find_creature_in_match(creature_dict["id"])
+        else:
+            creature = Creature(
+                creature_dict["species_id"],
+                creature_dict["player_id"],
+                creature_dict["level"],
+                creature_dict["nickname"],
+                id=creature_dict["id"]
+            )
+
+            if board is not None and creature_dict["position"] is not None:
+                creature.set_position(
+                    board[
+                        creature_dict["position"]["x"]
+                    ]
+                    [
+                        creature_dict["position"]["y"]
+                    ]
+                )
+            
+            return creature
+
     def set_position(self, new_position):
-        # it's this function's responsibility to ensure that position.creature
+        # this function's responsibility is to ensure that position.creature_id
         # and creature.position always correspond.
 
-        if self.position is new_position:
-            return
+        # prevent invalid moves
+        
+        if new_position.creature_id is not None and new_position.creature_id != self.id:
+            logging.debug("Position is occupied")
+        
+        # handle creature being removed from board
+
         elif new_position is None:
             old_position = self.position
             self.__position = None
-            old_position.set_creature(None)
-        elif new_position.creature is not None and new_position.creature is not self:
-            logging.debug("Space is occupied")
+            old_position.set_creature_id(None)
+
+        # handle a valid move
+
         else:
+            logging.debug(f"Updating creature {self.nickname} position to [{new_position.x},{new_position.y}]")
             old_position = self.position
-            self.__position = new_position
-            
+
+            # remove creature from old position
             if old_position is not None:
-                old_position.set_creature(None)
+                old_position.set_creature_id(None)
+
+            # add creature to new position 
+            self.__position = new_position
+            new_position.set_creature_id(self.id)
             
-            if new_position.creature is not self:
-                new_position.set_creature(self)
 
     def receive_action(self, action):
         # for now, the only type of actions are attacks
@@ -101,9 +136,10 @@ class Creature:
             "actions": [a.to_simple_dict() for a in self.actions],
             "position": None if self.position is None else {
                 "x": self.position.x,
-                "y": self.position.y
+                "y": self.position.y,
+                "creature_id": self.id
             }
         }
 
-def get_test_creature(nickname):
-    return Creature(None, None, 1, nickname)
+def get_test_creature(nickname, player_id=None, id=None):
+    return Creature("TEST_CREATURE_SPECIES", player_id, 1, nickname, id=id)
