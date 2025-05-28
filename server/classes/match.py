@@ -9,12 +9,13 @@ def player_info_dict(player):
     """Provides only the data necessary for the frontend"""
 
 class Match:
-    def __init__(self, board, player_1, player_2, id=None, turn_number=1, active=True):
+    def __init__(self, board, player_1, player_2, id=None, turn_number=0, active=True):
         self.id = id if id is not None else uuid4()
         self.board = board
         self.player_1 = player_1
         self.player_2 = player_2
         self.turn_number = turn_number
+        self.history = []
         self.active = active
 
     def remove_fainted_commands(commands):
@@ -27,6 +28,14 @@ class Match:
     def find_creature_in_match(self, creature_id):
         return next((c for c in self.player_1.creatures + self.player_2.creatures if c.id == creature_id), None)
 
+    def get_match_creatures(self):
+        creatures = []
+        if self.player_1:
+            creatures.extend(self.player_1.creatures)
+        if self.player_2:
+            creatures.extend(self.player_2.creatures)
+        return creatures
+
     def get_player_number(self, player):
         if self.player_1 and self.player_1.name == player.name:
             return 1
@@ -38,6 +47,22 @@ class Match:
     def is_player_in_match(self, player):
         return (self.player_1 and player.name == self.player_1.name) or (
             self.player_2 and player.name == self.player_2.name)
+
+    def store_tick(self):
+        """Stores a tick to the match's record of its turns. The index of history should be
+        equivalent to the turn number"""
+        if len(self.history) == self.turn_number:
+            # add the next turn
+            self.history.append([])
+        
+        logging.debug(f"Storing tick for turn {self.turn_number} in match {self.id}")
+        # store a list of creature states in dict form
+        self.history[self.turn_number].extend([[c.to_simple_dict() for c in self.get_match_creatures()]])
+
+    def start_game(self):
+        self.init_creature_positions()
+        self.store_tick()
+        self.turn_number = 1
 
     def init_creature_positions(self):
         """Place the players' creatures on the board when the game starts"""
@@ -70,8 +95,10 @@ class Match:
 
         for command in all_turn_commands["player_1"]:
             perform_action(command)
+            self.store_tick()
         for command in all_turn_commands["player_2"]:
             perform_action(command)
+            self.store_tick()
         
         # remove the remaning commands of creatures that fainted after actions
         all_turn_commands["player_1"] = Match.remove_fainted_commands(all_turn_commands["player_1"])
@@ -90,6 +117,7 @@ class Match:
                 if next_position is not None:
                     do_moves_remain = True
                     command.creature.set_position(next_position)
+                    self.store_tick()
             self.display_game()
         
         if self.check_game_over():
@@ -135,9 +163,10 @@ class Match:
         like json.dumps(match.to_simple_dict())."""
         return {
             "id": str(self.id),
-            "board": self.board.to_simple_dict(),
             "player_1": None if self.player_1 is None else self.player_1.to_simple_dict(),
             "player_2": None if self.player_2 is None else self.player_2.to_simple_dict(),
             "turn_number": self.turn_number,
-            "active": self.active
+            "active": self.active,
+            "board": self.board.to_simple_dict(),
+            "history": self.history
         }

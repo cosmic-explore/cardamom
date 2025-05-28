@@ -19,7 +19,7 @@ def match_from_json(json_str):
     board = Board(simple_dict["board"]["size_x"], simple_dict["board"]["size_y"])
     player_1 = init_player(simple_dict["player_1"], board)
     player_2 = init_player(simple_dict["player_2"], board)
-    return Match(
+    match = Match(
         board,
         player_1,
         player_2,
@@ -27,6 +27,8 @@ def match_from_json(json_str):
         simple_dict["turn_number"],
         simple_dict["active"]
     )
+    match.history = simple_dict["history"]
+    return match
 
 def commands_from_json(json_str, match):
     """Loads commands stored in redis"""

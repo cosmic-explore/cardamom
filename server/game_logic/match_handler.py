@@ -21,8 +21,7 @@ def initialize_match(player_1, player_2, match_id=TEST_MATCH_ID):
 
 def start_match(match):
     """place creatures and inform players the match has started"""
-    match.init_creature_positions()
-    match.turn_number = 1
+    match.start_game()
     update_match_redis(match)
     redis_connection.publish(TEST_MATCH_CHANNEL, f"Match Start")
     publish_match_update(match)
