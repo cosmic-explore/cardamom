@@ -27,13 +27,12 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~join game~~
 -   ~~display game~~
 -   ~~play game~~
--   show when other player's commands are submitted and when the user's have cleared
+-   ~~show when other player's commands are submitted and when the user's have cleared~~
 -   show when game is over
 -   play out turns in real time before showing final result
 -   let user rewatch the current turn
 -   real account authentication
 -   see open games
--   everything else
 
 ### backend
 
@@ -51,3 +50,7 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~frontend linting~~
 -   backend linting
 -   deployment pipeline
+
+## hosting
+
+-   host demo on AWS
