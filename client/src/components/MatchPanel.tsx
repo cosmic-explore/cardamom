@@ -8,7 +8,7 @@ import {
     PositionData
 } from '../DataTypes'
 import { Board } from './Board'
-import { Button } from '@radix-ui/themes'
+import { Button, ThickCheckIcon } from '@radix-ui/themes'
 import { OrderPanel } from './OrderPanel'
 import { DetailPanel } from './DetailPanel'
 import {
@@ -16,21 +16,21 @@ import {
     getActionTargets,
     getCreatureMoveRoute,
     getCreatureMoves,
+    getStoredCommands,
     refreshMatch
 } from '../utils/server-connection'
 import { arePositionsSame, getActivePlayer, getMatchCreature } from '../utils/game-utils'
 
-const fillBlankCommands = (matchData: MatchData, playerName: string): CommandData[] => {
-    // TODO: replace this with loading the commands stored by the server
-    const playerData = getActivePlayer(playerName, matchData)
-    return playerData
-        ? playerData.creatures.map((c) => {
-              return { action: null, action_target: null, creature: c, move_target: null }
-          })
-        : []
+export type CommandState = {
+    p1Submitted: boolean
+    p2Submitted: boolean
 }
 
-export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData }) => {
+export const MatchPanel = (props: {
+    matchData: MatchData
+    playerData: PlayerData
+    commandState: CommandState
+}) => {
     const [selectedPos, setSelectedPos] = useState<PositionData | null>(null)
     const [highlightedPosList, setHighlightedPosList] = useState<PositionData[]>([])
     const [commandMode, setCommandMode] = useState<string>('move')
@@ -39,12 +39,20 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
     )
 
     useEffect(() => {
+        getStoredCommands().then((data) => {
+            if (data.length !== 0) {
+                setCommands(data)
+            } else {
+                setCommands(fillBlankCommands(props.matchData, props.playerData.name))
+            }
+        })
+    }, [props.commandState])
+
+    useEffect(() => {
         updatePositionHighlights()
     }, [selectedPos, commandMode, commands])
 
     useEffect(() => {
-        // runs only when there is an update for the match
-        setCommands(fillBlankCommands(props.matchData, props.playerData.name))
         setSelectedPos(null)
         updatePositionHighlights()
     }, [props.matchData])
@@ -188,15 +196,38 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
         setSelectedPos(creature.position)
     }
 
+    const playerCommandState =
+        props.playerData.id === props.matchData.player_1?.id
+            ? props.commandState.p1Submitted
+            : props.commandState.p2Submitted
+
     return (
         <div className="flex flex-row">
             <div className="flex flex-col items-center">
                 <div className="mb-1">{props.matchData.id}</div>
                 <div>Turn {props.matchData.turn_number}</div>
                 <div className="flex flex-row mb-3">
-                    <div>Player 1: {props.matchData.player_1?.name}</div>
+                    <div>
+                        Player 1: {props.matchData.player_1?.name}
+                        {props.commandState.p1Submitted ? (
+                            <div className="text-green-600">
+                                <ThickCheckIcon />
+                            </div>
+                        ) : (
+                            ''
+                        )}
+                    </div>
                     <div className="pl-8 pr-8" />
-                    <div>Player 2: {props.matchData.player_2?.name}</div>
+                    <div>
+                        Player 2: {props.matchData.player_2?.name}
+                        {props.commandState.p2Submitted ? (
+                            <div className="text-green-600">
+                                <ThickCheckIcon />
+                            </div>
+                        ) : (
+                            ''
+                        )}
+                    </div>
                 </div>
                 <Board
                     {...{
@@ -233,6 +264,7 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
                                     matchData: props.matchData,
                                     commandMode,
                                     commands,
+                                    submitted: playerCommandState,
                                     updateCommand,
                                     selectedPos,
                                     setCommandMode,
@@ -249,4 +281,13 @@ export const MatchPanel = (props: { matchData: MatchData; playerData: PlayerData
             <Button onClick={() => refreshMatch()}>Refresh Match Data</Button>
         </div>
     )
+}
+
+const fillBlankCommands = (matchData: MatchData, playerName: string): CommandData[] => {
+    const playerData = getActivePlayer(playerName, matchData)
+    return playerData
+        ? playerData.creatures.map((c) => {
+              return { action: null, action_target: null, creature: c, move_target: null }
+          })
+        : []
 }

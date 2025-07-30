@@ -5,7 +5,8 @@ import {
     GET_CREATURE_MOVES,
     HOST_ROOT,
     GET_CREATURE_MOVE_ROUTE,
-    SUBMIT_MATCH_COMMANDS
+    SUBMIT_MATCH_COMMANDS,
+    GET_STORED_COMMANDS
 } from '../constants/server-endpoints'
 import { CommandData } from '../DataTypes'
 
@@ -88,4 +89,10 @@ export const submitMatchCommands = async (commands: CommandData[]) => {
     const requestBody = JSON.stringify({ commands })
     const response = await fetch(SUBMIT_MATCH_COMMANDS, buildPostRequest(requestBody))
     return response.ok
+}
+
+export const getStoredCommands = async (): Promise<CommandData[]> => {
+    // Returns an empty array when commands have not been submitted
+    const response = await fetch(GET_STORED_COMMANDS, buildGetRequest())
+    return response.json()
 }

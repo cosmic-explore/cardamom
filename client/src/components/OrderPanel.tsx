@@ -11,13 +11,13 @@ import {
 import { OrderBox } from './OrderBox'
 import { getActivePlayer } from '../utils/game-utils'
 import { submitMatchCommands } from '../utils/server-connection'
-import { useState } from 'react'
 
 export type OrderPanelProps = {
     matchData: MatchData
     currentPlayer: PlayerData
     commandMode: string
     commands: CommandData[]
+    submitted: boolean
     selectedPos: PositionData | null
     boxClickFunc: (data: CreatureData) => void
     updateCommand: (
@@ -29,8 +29,6 @@ export type OrderPanelProps = {
 }
 
 export const OrderPanel = (props: OrderPanelProps) => {
-    const [submitted, setSubmitted] = useState<boolean>(false) // TODO: remove and get from parents
-
     const player = getActivePlayer(props.currentPlayer.name, props.matchData)
 
     const getCommandOfCreature = (creature: CreatureData) => {
@@ -45,11 +43,7 @@ export const OrderPanel = (props: OrderPanelProps) => {
     }
 
     const handleCommandSubmission = () => {
-        submitMatchCommands(props.commands).then((responseOk) => {
-            if (responseOk) {
-                setSubmitted(true)
-            }
-        })
+        submitMatchCommands(props.commands)
     }
 
     return (
@@ -75,7 +69,7 @@ export const OrderPanel = (props: OrderPanelProps) => {
                 <Button style={{ cursor: 'pointer' }} onClick={() => handleCommandSubmission()}>
                     Submit
                 </Button>
-                {submitted ? (
+                {props.submitted ? (
                     <div className="text-green-600">
                         <ThickCheckIcon />
                     </div>

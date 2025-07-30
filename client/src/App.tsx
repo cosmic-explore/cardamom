@@ -3,12 +3,17 @@ import './App.css'
 import { login, joinMatch, refreshMatch } from './utils/server-connection.tsx'
 import { Button } from '@radix-ui/themes'
 import { LoginPanel } from './components/LoginPanel.tsx'
-import { MatchPanel } from './components/MatchPanel.tsx'
+import { CommandState, MatchPanel } from './components/MatchPanel.tsx'
 import { MatchData, PlayerData } from './DataTypes.tsx'
+import { COMMAND_UPDATE, MATCH_UPDATE } from './constants/game-constants.tsx'
 
 function App() {
     const [playerData, setPlayerData] = useState<PlayerData>()
     const [matchData, setMatchData] = useState<MatchData>()
+    const [commandState, setCommandState] = useState<CommandState>({
+        p1Submitted: false,
+        p2Submitted: false
+    })
 
     const handleLogin = (inputText: string) => {
         login(inputText).then((responseJson) => {
@@ -25,11 +30,25 @@ function App() {
             matchStream.onmessage = (event) => {
                 console.log('match event received')
                 const data = JSON.parse(JSON.parse(event.data))
-                console.log(data)
-                if (typeof data != 'number') {
-                    setMatchData(data)
-                } else {
+                if (typeof data == 'number') {
+                    // the success code for subscribing to the match is '1'
+                    // ask the server for the current match state after subscribing
                     refreshMatch()
+                } else {
+                    console.log(data)
+                    switch (data.notification_type) {
+                        case MATCH_UPDATE:
+                            const matchUpdate = JSON.parse(data.data)
+                            console.log(matchUpdate)
+                            setMatchData(matchUpdate)
+                            break
+                        case COMMAND_UPDATE:
+                            setCommandState({
+                                p1Submitted: data.data.player_1,
+                                p2Submitted: data.data.player_2
+                            })
+                            break
+                    }
                 }
             }
             matchStream.onerror = (error) => {
@@ -48,7 +67,11 @@ function App() {
                     {playerData ? <div>User: {playerData.name}</div> : ''}
                 </div>
                 <div className="grow-1">
-                    {matchData && playerData ? <MatchPanel {...{ matchData, playerData }} /> : ''}
+                    {matchData && playerData ? (
+                        <MatchPanel {...{ matchData, playerData, commandState }} />
+                    ) : (
+                        ''
+                    )}
                     {playerData && !matchData ? (
                         <Button onClick={handleJoinMatch}>Join Match</Button>
                     ) : (

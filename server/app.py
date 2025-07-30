@@ -6,7 +6,7 @@ from flask_session import Session
 from flask_cors import CORS
 from constants import TEST_MATCH_CHANNEL
 from classes.player import get_test_player_1, get_test_player_2
-from game_logic.command_handler import submit_commands
+from game_logic.command_handler import get_player_commands, publish_command_update, submit_commands
 from game_logic.match_handler import attempt_join_match, get_active_match_of_player, start_match, publish_match_update
 from classes.command import Command
 
@@ -71,6 +71,7 @@ def refresh_match():
     # TODO: implement for real - the current implementation is to test related functionality
     match = get_match_from_session()
     publish_match_update(match)
+    publish_command_update(match)
     return Response(status=204) 
 
 @app.route('/creatures/<id>/moves', methods=['GET'])
@@ -124,9 +125,15 @@ def submit_match_commands():
     app.logger.debug(request_data["commands"])
     commands = [Command.from_dict_and_match(c, match) for c in request_data["commands"]]
     submit_commands(match.get_player_number(player), commands, match)
-    # TODO: use the channel of the player's match
-    redis_connection.publish(TEST_MATCH_CHANNEL, f"player {player.id} commands submitted")
     return Response(status=204)
+
+@app.route('/match/commands', methods=['GET'])
+def get_stored_commands():
+    player = get_player_from_session()
+    match = get_match_from_session()
+    app.logger.debug(f"Retreiving stored commands for player {player.name} in match {match.id}")
+    player_number = match.get_player_number(player)
+    return jsonify([command.to_simple_dict() for command in get_player_commands(match, player_number)])
 
 def get_player_from_session():
     # TODO: use database instead of test players

@@ -30,7 +30,10 @@ def match_from_json(json_str):
     match.history = simple_dict["history"]
     return match
 
-def commands_from_json(json_str, match):
+def commands_from_json_and_match(json_str, match):
     """Loads commands stored in redis"""
     command_dict_array = json.loads(json_str)
     return [Command.from_dict_and_match(c, match) for c in command_dict_array]
+
+def game_notification(notification_type, data):
+    return json.dumps({"notification_type": notification_type, "data": data})

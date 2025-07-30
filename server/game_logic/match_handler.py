@@ -2,10 +2,10 @@
 import json
 import redis
 import logging
-from constants import TEST_MATCH_ID, NULL_STR, TEST_MATCH_CHANNEL
+from constants import MATCH_START, MATCH_UPDATE, TEST_MATCH_ID, NULL_STR, TEST_MATCH_CHANNEL
 from classes.match import Match
 from classes.board import Board
-from connection_util.redis_util import match_from_json
+from connection_util.redis_util import game_notification, match_from_json
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -21,9 +21,10 @@ def initialize_match(player_1, player_2, match_id=TEST_MATCH_ID):
 
 def start_match(match):
     """place creatures and inform players the match has started"""
+    logging.debug(f"Match {match.id} is starting!")
     match.start_game()
     update_match_redis(match)
-    redis_connection.publish(TEST_MATCH_CHANNEL, f"Match Start")
+    redis_connection.publish(TEST_MATCH_CHANNEL, game_notification(MATCH_START, None))
     publish_match_update(match)
 
 def update_match_redis(match):
@@ -35,7 +36,7 @@ def update_match_redis(match):
 def publish_match_update(match):
     update_match_redis(match)
     logging.debug(f"publishing match update on channel {TEST_MATCH_CHANNEL}")
-    redis_connection.publish(TEST_MATCH_CHANNEL, redis_connection.get(match.id))
+    redis_connection.publish(TEST_MATCH_CHANNEL, game_notification(MATCH_UPDATE, redis_connection.get(match.id)))
 
 def clear_match_commands(match_id):
     """Clear player commands from redis cache"""
