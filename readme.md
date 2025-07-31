@@ -51,7 +51,3 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~frontend linting~~
 -   backend linting
 -   deployment pipeline
-
-### hosting
-
--   host demo on AWS
