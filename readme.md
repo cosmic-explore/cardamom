@@ -28,8 +28,8 @@ You can script games for testing by accessing the container that hosts the flask
 -   ~~display game~~
 -   ~~play game~~
 -   ~~show when other player's commands are submitted and when the user's have cleared~~
--   play out turns in real time before showing final result
--   let user rewatch the current turn
+-   ~~play out turns in real time before showing final result~~
+-   ~~let user rewatch the current turn~~
 -   show when game is over
 -   real accounts and authentication
 -   lobby for open games
