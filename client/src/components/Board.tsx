@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { MatchData, PositionData } from '../DataTypes'
 import { arePositionsSame, getMatchCreature } from '../utils/game-utils'
 import { Position, PosSelectionType } from './Position'
@@ -8,10 +9,33 @@ type BoardProps = {
     highlightedPosList: PositionData[]
     handlePosClick: (data: PositionData) => void
     getTargetedPos: () => PositionData | null
+    replayingTurn: boolean
+    finishReplay: () => void
 }
 
 export function Board(props: BoardProps) {
-    const columns = props.matchData.board.columns
+    const [columns, SetColumns] = useState<PositionData[][]>(props.matchData.board.columns)
+
+    useEffect(() => {
+        SetColumns(props.matchData.board.columns)
+    }, [props.matchData])
+
+    useEffect(() => {
+        if (props.replayingTurn === true) {
+            watchTurn()
+        } else {
+            SetColumns(props.matchData.board.columns)
+        }
+    }, [props.replayingTurn])
+
+    const watchTurn = async () => {
+        const turn = props.matchData.history[props.matchData.turn_number - 1]
+        for (let i = 0; i < turn.length; i++) {
+            SetColumns(turn[i].columns)
+            await new Promise((r) => setTimeout(r, 200))
+        }
+        props.finishReplay()
+    }
 
     const getSelectionType = (posData: PositionData): PosSelectionType => {
         const targetedPos = props.getTargetedPos()

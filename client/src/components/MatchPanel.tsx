@@ -37,6 +37,7 @@ export const MatchPanel = (props: {
     const [commands, setCommands] = useState<CommandData[]>(
         fillBlankCommands(props.matchData, props.playerData.name)
     )
+    const [replayingTurn, setReplayingTurn] = useState<boolean>(false)
 
     useEffect(() => {
         getStoredCommands().then((data) => {
@@ -55,6 +56,7 @@ export const MatchPanel = (props: {
     useEffect(() => {
         setSelectedPos(null)
         updatePositionHighlights()
+        setReplayingTurn(true)
     }, [props.matchData])
 
     const updatePositionHighlights = () => {
@@ -235,7 +237,9 @@ export const MatchPanel = (props: {
                         selectedPos,
                         highlightedPosList,
                         handlePosClick,
-                        getTargetedPos
+                        getTargetedPos,
+                        replayingTurn,
+                        finishReplay: () => setReplayingTurn(false)
                     }}
                 />
             </div>
@@ -278,7 +282,11 @@ export const MatchPanel = (props: {
                     )}
                 </div>
             </div>
-            <Button onClick={() => refreshMatch()}>Refresh Match Data</Button>
+            <div className="flex flex-col">
+                <Button onClick={() => refreshMatch()}>Refresh Match Data</Button>
+                <div className="mb-2" />
+                <Button onClick={() => setReplayingTurn(true)}>Rewatch Turn</Button>
+            </div>
         </div>
     )
 }

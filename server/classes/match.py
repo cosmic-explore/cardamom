@@ -57,7 +57,7 @@ class Match:
         
         logging.debug(f"Storing tick for turn {self.turn_number} in match {self.id}")
         # store a list of creature states in dict form
-        self.history[self.turn_number].extend([[c.to_simple_dict() for c in self.get_match_creatures()]])
+        self.history[self.turn_number].append(self.board.to_simple_dict())
 
     def start_game(self):
         self.init_creature_positions()

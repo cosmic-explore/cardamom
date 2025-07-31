@@ -35,6 +35,7 @@ export type CreatureData = {
 export type MatchData = {
     id: string
     board: BoardData
+    history: BoardData[][]
     player_1: PlayerData | null
     player_2: PlayerData | null
     active: boolean
