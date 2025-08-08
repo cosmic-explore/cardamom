@@ -1,8 +1,14 @@
+from sqlalchemy.orm import Mapped, mapped_column
+from .base import db
 from uuid import uuid4
 
-class Action:
+class Action(db.Model):
+    name: Mapped[str] = mapped_column(nullable=False, unique=True)
+    reach: Mapped[int] = mapped_column(nullable=False)
+    power: Mapped[int] = mapped_column(nullable=False)
+    
     def __init__(self, name, reach, power, id=None):
-        self.id = id if id is not None else uuid4()
+        self.id = uuid4() if id is None else id
         self.name = name
         self.reach = reach
         self.power = power
@@ -39,5 +45,11 @@ class Action:
             "power": self.power
         }
 
-def get_test_attack():
-    return Action("test attack", 5, 1)
+    @classmethod
+    def from_dict(cls, simple_dict):
+        return Action(
+            simple_dict["name"],
+            simple_dict["reach"],
+            simple_dict["power"],
+            id=simple_dict["id"]
+        )

@@ -12,7 +12,7 @@ export type BoardData = {
 }
 
 export type CommandData = {
-    creature: CreatureData
+    creature_state_id: string
     move_target: PositionData | null
     action: ActionData | null
     action_target: PositionData | null
@@ -25,19 +25,26 @@ export type CreatureData = {
     nickname: string
     level: number
     max_hp: number
-    current_hp: number
     attack: number
     speed: number
     actions: ActionData[]
+}
+
+export type CreatureState = {
+    id: string
+    creature_id: string
+    current_hp: number
     position: PositionData
+    creature: CreatureData
 }
 
 export type MatchData = {
     id: string
     board: BoardData
-    history: BoardData[][]
+    history: [[{ board: BoardData; creature_states: CreatureState[] }]]
     player_1: PlayerData | null
     player_2: PlayerData | null
+    creature_states: CreatureState[]
     active: boolean
     turn_number: number
 }
@@ -45,7 +52,7 @@ export type MatchData = {
 export type PositionData = {
     x: number
     y: number
-    creature_id: string | null
+    creature_state_id: string | null
 }
 
 export type PlayerData = {

@@ -6,6 +6,7 @@ import { LoginPanel } from './components/LoginPanel.tsx'
 import { CommandState, MatchPanel } from './components/MatchPanel.tsx'
 import { MatchData, PlayerData } from './DataTypes.tsx'
 import { COMMAND_UPDATE, MATCH_UPDATE } from './constants/game-constants.tsx'
+import { getMatchCreature } from './utils/game-utils.tsx'
 
 function App() {
     const [playerData, setPlayerData] = useState<PlayerData>()
@@ -40,7 +41,7 @@ function App() {
                         case MATCH_UPDATE:
                             const matchUpdate = JSON.parse(data.data)
                             console.log(matchUpdate)
-                            setMatchData(matchUpdate)
+                            setMatchData(enchanceMatchData(matchUpdate))
                             break
                         case COMMAND_UPDATE:
                             setCommandState({
@@ -55,6 +56,7 @@ function App() {
                 console.log(error)
                 console.log('closing match stream')
                 matchStream.close()
+                setMatchData(undefined) // kicks the user out of the match display
             }
         })
     }
@@ -81,6 +83,13 @@ function App() {
             </div>
         </>
     )
+}
+
+const enchanceMatchData = (matchData: MatchData): MatchData => {
+    matchData.creature_states = matchData.creature_states.map((cs) => {
+        return { ...cs, creature: getMatchCreature(matchData, cs.creature_id) }
+    })
+    return matchData
 }
 
 export default App

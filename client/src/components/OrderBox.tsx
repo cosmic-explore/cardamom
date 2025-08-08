@@ -1,13 +1,13 @@
 import { Box, Flex } from '@radix-ui/themes'
 import { Select } from 'radix-ui'
-import { ActionData, CommandData, CreatureData, PositionData } from '../DataTypes'
+import { ActionData, CommandData, CreatureState, PositionData } from '../DataTypes'
 
 export type OrderBoxProps = {
-    creature: CreatureData
+    creatureState: CreatureState
     commandMode: string
     command: CommandData
     isSelected: boolean
-    boxClickFunc: (data: CreatureData) => void
+    boxClickFunc: (data: CreatureState) => void
     updateCommand: (
         command: CommandData,
         newTarget: PositionData | null,
@@ -21,17 +21,18 @@ export const OrderBox = (props: OrderBoxProps) => {
     const actionBorderStyle = props.isSelected && props.commandMode === 'action' ? 'border' : ''
 
     const handleActionChange = (actionName: string) => {
-        const newAction = props.creature.actions.find((a) => a.name === actionName) || null
+        const newAction =
+            props.creatureState.creature.actions.find((a) => a.name === actionName) || null
         props.updateCommand(props.command, null, newAction)
     }
 
     return (
         <Box
             className={`border p-5 ${props.isSelected ? 'bg-yellow-100' : ''}`}
-            onClick={() => props.boxClickFunc(props.creature)}
+            onClick={() => props.boxClickFunc(props.creatureState)}
         >
             <Flex>
-                <Box className="mr-5">{props.creature.nickname}</Box>
+                <Box className="mr-5">{props.creatureState.creature.nickname}</Box>
                 <Box>
                     <div
                         className={`flex w-100 ${moveBorderStyle}`}
@@ -62,7 +63,7 @@ export const OrderBox = (props: OrderBoxProps) => {
                                             <Select.ItemText>None</Select.ItemText>
                                         </Select.Item>
                                         <Select.Separator />
-                                        {props.creature.actions.map((action) => {
+                                        {props.creatureState.creature.actions.map((action) => {
                                             return (
                                                 <Select.Item
                                                     value={action.name}

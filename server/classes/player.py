@@ -1,9 +1,17 @@
+from sqlalchemy import String, select
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List
 from uuid import uuid4
-from .creature import get_test_creature
+from .base import db
+from .creature import Creature
 
-class Player:
+class Player(db.Model):
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+
+    creatures: Mapped[List[Creature]] = relationship(back_populates="player")
+    
     def __init__(self, name, id=None):
-        self.id = id if id is not None else uuid4()
+        self.id = uuid4() if id is None else id
         self.name = name
         self.creatures = []
 
@@ -11,6 +19,9 @@ class Player:
         """Func required by oauth"""
         return self.id
     
+    def get_redis_active_match_key(self):
+        return f"PLAYER_f{(str(self.id))}_MATCH"
+
     def to_simple_dict(self):
         """For the JSON serialization of Player objects."""
         return {
@@ -19,12 +30,6 @@ class Player:
             "creatures": [c.to_simple_dict() for c in self.creatures]
         }
     
-def get_test_player_1():
-    player = Player("Safari", id="TEST_USER_1")
-    player.creatures.append(get_test_creature("A", player_id=player.id, id="test_creature_1"))
-    return player
-
-def get_test_player_2():
-    player = Player("Firehawk", id="TEST_USER_2")
-    player.creatures.append(get_test_creature("B", player_id=player.id, id="test_creature_2"))
-    return player
+    @classmethod
+    def find_by_name(cls, db, name):
+        return db.session.scalars(select(Player).where(Player.name == name)).one_or_none()

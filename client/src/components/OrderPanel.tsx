@@ -3,7 +3,7 @@ import './select.css'
 import {
     ActionData,
     CommandData,
-    CreatureData,
+    CreatureState,
     MatchData,
     PlayerData,
     PositionData
@@ -19,7 +19,7 @@ export type OrderPanelProps = {
     commands: CommandData[]
     submitted: boolean
     selectedPos: PositionData | null
-    boxClickFunc: (data: CreatureData) => void
+    boxClickFunc: (data: CreatureState) => void
     updateCommand: (
         command: CommandData,
         newTarget: PositionData | null,
@@ -30,11 +30,16 @@ export type OrderPanelProps = {
 
 export const OrderPanel = (props: OrderPanelProps) => {
     const player = getActivePlayer(props.currentPlayer.name, props.matchData)
+    const creatureStates = props.matchData.creature_states.filter(
+        (creatureState) => creatureState.creature.player_id === player?.id
+    )
 
-    const getCommandOfCreature = (creature: CreatureData) => {
+    const getCommandOfCreature = (creatureState: CreatureState) => {
         return (
-            props.commands.find((command: CommandData) => command.creature.id == creature.id) || {
-                creature: creature,
+            props.commands.find(
+                (command: CommandData) => command.creature_state_id == creatureState.id
+            ) || {
+                creature_state_id: creatureState.id,
                 move_target: null,
                 action: null,
                 action_target: null
@@ -50,18 +55,18 @@ export const OrderPanel = (props: OrderPanelProps) => {
         <Box className="border p-1 w-100">
             <div>Your Orders</div>
             <Box>
-                {player?.creatures.map((creature: CreatureData) => (
+                {creatureStates.map((creatureState: CreatureState) => (
                     <OrderBox
+                        key={creatureState.id}
                         {...{
-                            creature,
+                            creatureState,
                             commandMode: props.commandMode,
-                            command: getCommandOfCreature(creature),
-                            isSelected: props.selectedPos?.creature_id === creature.id,
+                            command: getCommandOfCreature(creatureState),
+                            isSelected: props.selectedPos?.creature_state_id === creatureState.id,
                             boxClickFunc: props.boxClickFunc,
                             updateCommand: props.updateCommand,
                             setCommandMode: props.setCommandMode
                         }}
-                        key={creature.id}
                     />
                 ))}
             </Box>

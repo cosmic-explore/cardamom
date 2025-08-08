@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MatchData, PositionData } from '../DataTypes'
-import { arePositionsSame, getMatchCreature } from '../utils/game-utils'
+import { arePositionsSame, getMatchCreatureState } from '../utils/game-utils'
 import { Position, PosSelectionType } from './Position'
 
 type BoardProps = {
@@ -29,9 +29,11 @@ export function Board(props: BoardProps) {
     }, [props.replayingTurn])
 
     const watchTurn = async () => {
+        // the previous turn (whose outcome is the current board state) will be
+        // the current turn_number - 1
         const turn = props.matchData.history[props.matchData.turn_number - 1]
         for (let i = 0; i < turn.length; i++) {
-            SetColumns(turn[i].columns)
+            SetColumns(turn[i].board.columns)
             await new Promise((r) => setTimeout(r, 200))
         }
         props.finishReplay()
@@ -67,10 +69,12 @@ export function Board(props: BoardProps) {
                                     <Position
                                         {...{
                                             posData,
-                                            creature: getMatchCreature(
-                                                props.matchData,
-                                                posData.creature_id
-                                            ),
+                                            creatureState: posData.creature_state_id
+                                                ? getMatchCreatureState(
+                                                      props.matchData,
+                                                      posData.creature_state_id
+                                                  )
+                                                : null,
                                             selectionType,
                                             clickFunc: props.handlePosClick
                                         }}
