@@ -54,33 +54,33 @@ export const refreshMatch = async () => {
     await fetch(REFRESH_MATCH, buildGetRequest())
 }
 
-export const getCreatureMoves = async (creatureId: string) => {
-    const url = `${GET_CREATURE_MOVES[0]}/${creatureId}/${GET_CREATURE_MOVES[1]}`
+export const getCreatureMoves = async (creatureStateId: string) => {
+    const url = `${GET_CREATURE_MOVES[0]}/${creatureStateId}/${GET_CREATURE_MOVES[1]}`
     const response = await fetch(url, buildGetRequest())
     return response.json()
 }
 
 export const getCreatureMoveRoute = async (
-    creatureId: string,
+    creatureStateId: string,
     queryParams: positionQueryParams
 ) => {
-    const url = `${GET_CREATURE_MOVE_ROUTE[0]}/${creatureId}/${GET_CREATURE_MOVE_ROUTE[1]}?${new URLSearchParams(queryParams)}`
+    const url = `${GET_CREATURE_MOVE_ROUTE[0]}/${creatureStateId}/${GET_CREATURE_MOVE_ROUTE[1]}?${new URLSearchParams(queryParams)}`
     const response = await fetch(url, buildGetRequest())
     return response.json()
 }
 
-export const getActionTargets = async (creatureId: string, actionId: string) => {
-    const url = `${HOST_ROOT}/creatures/${creatureId}/actions/${actionId}/targets`
+export const getActionTargets = async (creatureStateId: string, actionId: string) => {
+    const url = `${HOST_ROOT}/creaturestates/${creatureStateId}/actions/${actionId}/targets`
     const response = await fetch(url, buildGetRequest())
     return response.json()
 }
 
 export const getActionAffected = async (
-    creatureId: string,
+    creatureStateId: string,
     actionId: string,
     queryParams: positionQueryParams
 ) => {
-    const url = `${HOST_ROOT}/creatures/${creatureId}/actions/${actionId}/affected?${new URLSearchParams(queryParams)}`
+    const url = `${HOST_ROOT}/creaturestates/${creatureStateId}/actions/${actionId}/affected?${new URLSearchParams(queryParams)}`
     const response = await fetch(url, buildGetRequest())
     return response.json()
 }

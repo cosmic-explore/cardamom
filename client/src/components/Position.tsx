@@ -1,4 +1,4 @@
-import { CreatureData, PositionData } from '../DataTypes'
+import { CreatureState, PositionData } from '../DataTypes'
 import { CreatureIcon } from './CreatureSprite'
 
 export enum PosSelectionType {
@@ -11,7 +11,7 @@ export enum PosSelectionType {
 
 export type PositionProps = {
     posData: PositionData
-    creature: CreatureData | null
+    creatureState: CreatureState | null
     selectionType: PosSelectionType
     clickFunc: (data: PositionData) => void
 }
@@ -27,8 +27,8 @@ export function Position(props: PositionProps) {
             onClick={handleClick}
             style={{ cursor: 'pointer' }}
         >
-            {props.creature ? (
-                <CreatureIcon {...{ speciesName: props.creature.nickname }} />
+            {props.creatureState ? (
+                <CreatureIcon {...{ speciesName: props.creatureState.creature.nickname }} />
             ) : (
                 `${props.posData.x},${props.posData.y}`
             )}

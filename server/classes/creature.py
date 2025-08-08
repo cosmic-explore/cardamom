@@ -1,114 +1,132 @@
 import logging
-
-from uuid import uuid4
-from .species import get_test_species
-
 logging.basicConfig(level=logging.DEBUG)
 
-class Creature:
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
+from .base import db
+from .species import Species
+from uuid import UUID, uuid4
+
+class Creature(db.Model):
+    nickname: Mapped[Optional[str]] = mapped_column()
+    level: Mapped[int] = mapped_column(nullable=False)
+    
+    species_id: Mapped[UUID] = mapped_column(ForeignKey("species.id"), nullable=False)
+    player_id: Mapped[UUID] = mapped_column(ForeignKey("player.id"), nullable=False)
+
+    species = relationship("Species")
+    player = relationship("Player")
+
     def __init__(self, species_id, player_id, level, nickname, id=None):
-        self.id = id if id is not None else uuid4()
+        self.id = self.id = uuid4() if id is None else id
         self.species_id = species_id
         self.player_id = player_id
         self.level = level
         self.nickname = nickname
-        self.__init_from_species(species_id, level)
-        
-        self.__position = None
 
     @property
-    def position(self):
-        return self.__position
+    def max_hp(self):
+        # TODO: define and implement level-based algorithm
+        return self.species.base_hp
+    
+    @property
+    def attack(self):
+        # TODO: define and implement level-based algorithm
+        return self.species.base_attack
+
+    @property
+    def speed(self):
+        # TODO: define and implement level-based algorithm
+        return self.species.base_speed
+
+    @property
+    def actions(self):
+        # TODO: let each creature have its own action pool
+        return self.species.actions
+    
+    def find_action_of_creature(self, action_id):
+        return next((a for a in self.actions if str(a.id) == action_id), None)
+
+    def to_simple_dict(self):
+        return {
+            "id": str(self.id),
+            "species_id": str(self.species_id),
+            "species": self.species.to_simple_dict(),
+            "player_id": str(self.player_id),
+            "level": self.level,
+            "nickname": self.nickname,
+            "max_hp": self.max_hp,
+            "attack": self.attack,
+            "speed": self.speed,
+            "actions": [a.to_simple_dict() for a in self.actions],
+        }
+    
+    @classmethod
+    def from_dict(cls, creature_dict):
+        creature = Creature(
+            creature_dict["species_id"],
+            creature_dict["player_id"],
+            creature_dict["level"],
+            creature_dict["nickname"],
+            id=creature_dict["id"]
+        )
+        creature.species = Species.from_dict(creature_dict["species"])
+        return creature
+
+class CreatureState(db.Model):
+    """Class for the state of a creature within a given Match"""
+    match_id: Mapped[UUID] = mapped_column(ForeignKey("match.id"), nullable=False)
+    position_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("position.id"), unique=True)
+    creature_id: Mapped[UUID] = mapped_column(ForeignKey("creature.id"), nullable=False)
+    current_hp: Mapped[int] = mapped_column(nullable=False)
+
+    match = relationship("Match")
+    creature: Mapped[Creature] = relationship("Creature")
+    position = relationship("Position", back_populates="creature_state")
+
+    def __init__(self, creature, match, position, id=None, current_hp=None):
+        self.id = uuid4() if id is None else id
+        self.creature = creature
+        self.match = match
+        self.position = position
+        self.current_hp = creature.max_hp if current_hp is None else current_hp
 
     @property
     def is_fainted(self):
         return self.current_hp <= 0
 
-    def __init_from_species(self, species_id, level):
-        # TODO: pull species from DB with sqlalchemy, define and implement level algorithm
-        species = get_test_species()
-        self.__max_hp = species.base_hp
-        self.current_hp = self.__max_hp
-        self.attack = species.base_attack
-        self.speed = species.base_speed
-        self.actions = species.actions
-
-    @classmethod
-    def from_dict(cls, creature_dict, match=None, board=None):
-        if match is not None:
-            # get the creature from the match data
-            return match.find_creature_in_match(creature_dict["id"])
-        else:
-            creature = Creature(
-                creature_dict["species_id"],
-                creature_dict["player_id"],
-                creature_dict["level"],
-                creature_dict["nickname"],
-                id=creature_dict["id"]
-            )
-
-            if board is not None and creature_dict["position"] is not None:
-                creature.set_position(
-                    board[
-                        creature_dict["position"]["x"]
-                    ]
-                    [
-                        creature_dict["position"]["y"]
-                    ]
-                )
-            
-            return creature
-
     def set_position(self, new_position):
-        # this function's responsibility is to ensure that position.creature_id
-        # and creature.position always correspond.
-
         # handle creature being removed from board
 
         if new_position is None:
-            old_position = self.position
-            self.__position = None
-            old_position.set_creature_id(None)
+            logging.debug(f"Removing creature {self.creature_id} from the board")
+            self.position = None
+            # old_position.set_creature_state_id(None)
 
         # prevent invalid moves
         
-        elif new_position.creature_id is not None and new_position.creature_id != self.id:
+        elif new_position.creature_state is not None and new_position.creature_state != self:
             logging.debug("Position is occupied")
 
         # handle a valid move
 
         else:
-            logging.debug(f"Updating creature {self.nickname} position to [{new_position.x},{new_position.y}]")
-            old_position = self.position
+            logging.debug(f"Updating creature {self.creature_id} position to [{new_position.x},{new_position.y}]")
+            # old_position = self.position
 
-            # remove creature from old position
-            if old_position is not None:
-                old_position.set_creature_id(None)
+            # # remove creature from old position
+            # if old_position is not None:
+            #     old_position.set_creature_state_id(None)
 
             # add creature to new position 
-            self.__position = new_position
-            new_position.set_creature_id(self.id)
-            
+            self.position = new_position
+            # new_position.set_creature_state_id(self.id)
 
-    def receive_action(self, action):
-        # for now, the only type of actions are attacks
-        # TODO: add a damage equation that factors in creature defense
-        self.current_hp -= action.power
-        if self.is_fainted:
-            self.remove_from_board()
-
-    def remove_from_board(self):
-        if self.position is not None:
-            self.set_position(None)
-
-    def find_action_of_creature(self, action_id):
-        # TODO: find action by id instead of name
-        return next((a for a in self.actions if a.name == action_id), None)
-    
     def get_planned_move_path(self, destination):
         board = self.position.board
         path = []
-        remaining_speed = self.speed
+        remaining_speed = self.creature.speed
 
         def find_path(board, path, current_pos, remaining_speed):
             next_pos = board.get_next_pos_in_path(current_pos, destination)
@@ -119,27 +137,52 @@ class Creature:
                 remaining_speed -= 1
                 return find_path(board, path, next_pos, remaining_speed)
             
-        return find_path(board, path, self.position, remaining_speed)
+        return find_path(board, path, self.position, remaining_speed)            
 
+    def receive_action(self, action):
+        # for now, the only type of actions are attacks
+        # TODO: add a damage equation that factors in creature defense
+        self.current_hp -= action.power
+        if self.current_hp <= 0:
+            self.remove_from_board()
+
+    def remove_from_board(self):
+        if self.position is not None:
+            self.set_position(None)
 
     def to_simple_dict(self):
         return {
             "id": str(self.id),
-            "species_id": str(self.species_id),
-            "player_id": str(self.player_id),
-            "level": self.level,
-            "nickname": self.nickname,
-            "max_hp": self.__max_hp,
+            "creature_id": str(self.creature.id),
+            "match_id": str(self.match_id),
             "current_hp": self.current_hp,
-            "attack": self.attack,
-            "speed": self.speed,
-            "actions": [a.to_simple_dict() for a in self.actions],
-            "position": None if self.position is None else {
-                "x": self.position.x,
-                "y": self.position.y,
-                "creature_id": self.id
-            }
+            "position": None if self.position is None else self.position.to_simple_dict()
         }
-
-def get_test_creature(nickname, player_id=None, id=None):
-    return Creature("TEST_CREATURE_SPECIES", player_id, 1, nickname, id=id)
+    
+    @classmethod
+    def from_dict(cls, creature_state_dict, match=None):
+        creature_state = CreatureState(
+            None, None, None,
+            id=creature_state_dict["id"],
+            current_hp=creature_state_dict["current_hp"]
+        )
+        creature_state.match_id = creature_state_dict["match_id"]        
+        creature_state.creature_id = creature_state_dict["creature_id"]
+        
+        # hook up the relationships if possible
+        if match is not None:
+            # hook creature
+            creature_state.creature = match.find_creature_in_match(creature_state.creature_id)
+            # hook position
+            if creature_state_dict["position"] is not None:
+                board = match.board
+                creature_state.set_position(
+                    board[
+                        creature_state_dict["position"]["x"]
+                    ]
+                    [
+                        creature_state_dict["position"]["y"]
+                    ]
+                )
+        
+        return creature_state

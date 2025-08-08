@@ -19,35 +19,39 @@ You can script games for testing by accessing the container that hosts the flask
 
 ### general
 
--   host project in a playable state
+-   [ ] host project for play-testing
+-   [ ] design fun and balanced creatures and abilities
+-   [ ] real accounts and authentication
 
 ### client
 
--   ~~login~~
--   ~~join game~~
--   ~~display game~~
--   ~~play game~~
--   ~~show when other player's commands are submitted and when the user's have cleared~~
--   ~~play out turns in real time before showing final result~~
--   ~~let user rewatch the current turn~~
--   show when game is over
--   real accounts and authentication
--   lobby for open games
+-   [x] ~~login~~
+-   [x] ~~join game~~
+-   [x] ~~display game~~
+-   [x] ~~play game~~
+-   [x] ~~show when other player's commands are submitted and when the user's have cleared~~
+-   [x] ~~play out turns in real time before showing final result~~
+-   [x] ~~let user rewatch the current turn~~
+-   [ ] show when game is over
+-   [ ] display the player's owned creatures on the main page
+-   [ ] lobby for open games
+-   [ ] add visuals for abilities
 
 ### backend
 
--   ~~add basic game logic: matches, players, creatures, winning~~
--   ~~use redis pub/sub to alert players when a turn has progressed~~
--   ~~server routes to communicate with client~~
--   ~~store each match tick~~
--   connect server with the postgres database and remove all mocked code
--   seed database
--   connect server with the postgres database
--   endpoints for game history and lobby
--   tests
+-   [x] ~~add basic game logic: matches, players, creatures, winning~~
+-   [x] ~~use redis pub/sub to alert players when a turn has progressed~~
+-   [x] ~~server routes to communicate with client~~
+-   [x] ~~store each match tick~~
+-   [x] ~~connect server with the postgres database and remove all mocked code~~
+-   [x] ~~seed database with test data~~
+-   [ ] proper logic for ending the game
+-   [ ] endpoints for player game history and open game lobby
 
 ### development todos
 
--   ~~frontend linting~~
--   backend linting
--   deployment pipeline
+-   [ ] ~~frontend linting~~
+-   [ ] backend linting
+-   [ ] debugging config for docker containers (VSCode debugger on app running in docker container)
+-   [ ] tests
+-   [ ] deployment pipeline

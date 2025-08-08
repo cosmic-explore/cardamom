@@ -4,4 +4,4 @@ flask-cors
 flask_oauthlib
 redis
 psycopg2
-sqlalchemy
+Flask-SQLAlchemy
