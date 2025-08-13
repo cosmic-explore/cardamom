@@ -22,7 +22,6 @@ class Position(db.Model):
         self.board = board
         self.x = x
         self.y = y
-        # creature_state_id should only be updated by the set_creature_state_id func
         self.creature_state = creature_state
 
     def __str__(self):
@@ -73,4 +72,3 @@ class Position(db.Model):
                 if cs.id == position["creature_state_id"]:
                     position.creature_state = cs
         return position
-    

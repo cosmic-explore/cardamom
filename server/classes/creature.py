@@ -97,31 +97,19 @@ class CreatureState(db.Model):
         return self.current_hp <= 0
 
     def set_position(self, new_position):
-        # handle creature being removed from board
 
         if new_position is None:
+            # handle creature being removed from board
             logging.debug(f"Removing creature {self.creature_id} from the board")
             self.position = None
-            # old_position.set_creature_state_id(None)
-
-        # prevent invalid moves
-        
         elif new_position.creature_state is not None and new_position.creature_state != self:
+            # prevent invalid moves
             logging.debug("Position is occupied")
-
-        # handle a valid move
-
+            return
         else:
+            # handle a valid move
             logging.debug(f"Updating creature {self.creature_id} position to [{new_position.x},{new_position.y}]")
-            # old_position = self.position
-
-            # # remove creature from old position
-            # if old_position is not None:
-            #     old_position.set_creature_state_id(None)
-
-            # add creature to new position 
             self.position = new_position
-            # new_position.set_creature_state_id(self.id)
 
     def get_planned_move_path(self, destination):
         board = self.position.board

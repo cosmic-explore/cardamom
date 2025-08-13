@@ -101,12 +101,13 @@ class Match(db.Model):
         })
 
         def trick_sqlalchemy():
-            """The docs suggest creating a subclass of MutableList to track the changes of sublists, but it didn't work."""
+            """Forces SQLalchemy to think the history has been updated.
+            The docs suggest creating a subclass of MutableList to track the changes of sublists, but it didn't work."""
+            # TODO: Get the documentation's suggested method to work.
             # https://docs.sqlalchemy.org/en/20/orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableList
-            # TODO: Find a non-hack to do this.
             self.history.append([])
             self.history.pop()
-            logging.debug(f"Were changes to the mutable list tracked? {inspect(self).attrs.history.history.has_changes()}")
+            logging.debug(f"Were changes to the match's history tracked by SQLAlchemy? {inspect(self).attrs.history.history.has_changes()}")
         trick_sqlalchemy()
 
 
@@ -169,7 +170,8 @@ class Match(db.Model):
     
     def end_game(self):
         """Assumes there are only two players"""
-        # TODO: save the match history and result in database
+        # TODO: save the match result in database
+        # TODO: clear redis for the match and players
         self.active = False
         logging.debug("Game Over")
 

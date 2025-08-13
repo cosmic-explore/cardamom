@@ -23,6 +23,8 @@ from game_logic.match_handler import (
 
 app = Flask(__name__)
 
+# TODO: deployment-ready config
+
 # configure sqlalchemy
 # docker adds "database" to the DNS
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://dev_user:dev_password@database:5432/dev_user"

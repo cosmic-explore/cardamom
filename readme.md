@@ -46,6 +46,8 @@ You can script games for testing by accessing the container that hosts the flask
 -   [x] ~~connect server with the postgres database and remove all mocked code~~
 -   [x] ~~seed database with test data~~
 -   [ ] proper logic for ending the game
+-   [ ] provide useful error messages from server endpoints
+-   [ ] create registry of open matches in redis
 -   [ ] endpoints for player game history and open game lobby
 
 ### development todos
