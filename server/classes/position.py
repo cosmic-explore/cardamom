@@ -1,37 +1,38 @@
 import logging
-
 logging.basicConfig(level=logging.DEBUG)
 
-class Position:
-    def __init__(self, board, x, y):
+from sqlalchemy import ForeignKey, JSON, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid import UUID, uuid4
+from .base import db
+from .creature import CreatureState
+
+class Position(db.Model):
+    board_id: Mapped[UUID] = mapped_column(ForeignKey("board.id"), nullable=False)
+    x: Mapped[int] = mapped_column(nullable=False)
+    y: Mapped[int] = mapped_column(nullable=False)
+
+    board = relationship("Board", back_populates="positions")
+    creature_state: Mapped[CreatureState] = relationship("CreatureState", back_populates="position")
+
+    __table_args__ = (UniqueConstraint("board_id", "x", "y"),)
+    
+    def __init__(self, board, x, y, creature_state=None, id=None):
+        self.id = uuid4() if id is None else id
         self.board = board
         self.x = x
         self.y = y
-        self.__creature_id = None
-
-    @property
-    def creature_id(self):
-        return self.__creature_id
+        self.creature_state = creature_state
 
     def __str__(self):
-        return f'[{self.x},{self.y},{" " if self.creature_id is None else "X"}]'
+        return f'[{self.x},{self.y},{" " if self.creature_state is None else "X"}]'
+    
+    def print_coords(self):
+        return f"{self.x},{self.y}"
     
     def is_same(self, position):
         """Assumes the compared position belongs to the same board"""
         return self.x == position.x and self.y == position.y
-
-    def set_creature_id(self, new_creature_id):
-        """This func should only be called by Creature.set_position"""
-
-        if self.creature_id is None:
-            self.__creature_id = new_creature_id
-        elif new_creature_id is None:
-            # Note: the creature's position should already be set to this one
-            self.__creature_id = new_creature_id
-        elif self.creature_id == new_creature_id:
-            self.__creature_id = new_creature_id
-        else:
-            logging.debug("Warnimg: tried to place creature on a non-empty Position")
 
     def get_adjacent_positions(self):
         low_bound_x = max(self.x - 1, 0)
@@ -52,8 +53,22 @@ class Position:
         """Aids the JSON serialization of Match objects. Expects to be called
         like json.dumps(position.to_simple_dict())."""
         return {
+            "id": str(self.id),
             "x": self.x,
             "y": self.y,
-            "creature_id": self.creature_id
+            "creature_state_id": None if self.creature_state is None else str(self.creature_state.id)
         }
     
+    @classmethod
+    def from_dict(cls, position_dict, board):
+        position = Position(
+            board,
+            position_dict["x"],
+            position_dict["y"],
+            id=position_dict["id"]
+        )
+        if position_dict["creature_state_id"] is not None:
+            for cs in board.match.creature_states:
+                if cs.id == position["creature_state_id"]:
+                    position.creature_state = cs
+        return position

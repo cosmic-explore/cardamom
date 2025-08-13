@@ -1,32 +1,70 @@
 import logging
-from uuid import uuid4
-from math import floor
-from constants import TEST_MATCH_ID
-
 logging.basicConfig(level=logging.DEBUG)
 
-def player_info_dict(player):
-    """Provides only the data necessary for the frontend"""
+from sqlalchemy import ForeignKey, JSON, inspect
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.mutable import MutableList
+from typing import Any, Optional, List
+from uuid import UUID, uuid4
+from math import floor
+from .base import db
+from .board import Board
+from .creature import CreatureState
 
-class Match:
-    def __init__(self, board, player_1, player_2, id=None, turn_number=0, active=True):
+class Match(db.Model):
+    player_1_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("player.id"))
+    player_2_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("player.id"))
+    turn_number: Mapped[int] = mapped_column(nullable=False)
+    active: Mapped[bool] = mapped_column(nullable=False)
+    history: Mapped[List[Any]] = mapped_column(MutableList.as_mutable(JSON), nullable=False)
+
+    player_1 = relationship("Player", foreign_keys=[player_1_id])
+    player_2 = relationship("Player", foreign_keys=[player_2_id])
+    board: Mapped[Board] = relationship(back_populates="match")
+    creature_states: Mapped[List[CreatureState]] = relationship("CreatureState", back_populates="match")
+    
+    def __init__(self, player_1, player_2, turn_number=0, active=True, id=None):
         self.id = id if id is not None else uuid4()
-        self.board = board
         self.player_1 = player_1
         self.player_2 = player_2
         self.turn_number = turn_number
+        self.creature_states = []
         self.history = []
         self.active = active
 
+    def start_game(self):
+        logging.debug(f"Match {self.id} is starting!")
+        self.init_creatures()
+        self.store_tick() # stores turn 0
+        self.turn_number = 1
+
+    def init_creatures(self):
+        """Place the players' creatures on the board when the game starts"""
+        def init_player_creatures(player, y_pos):
+            creature_spacing = floor(self.board.size_x / len(player.creatures))
+            for index, creature in enumerate(player.creatures):
+                creature_state = CreatureState(creature, self, None)
+                db.session.add(creature_state)
+                creature_state.set_position(self.board[index * creature_spacing][y_pos])
+                logging.debug(f"Placed creature {creature.id} / state {creature_state.id} at [{creature_state.position.print_coords()}]")
+                self.creature_states.append(creature_state)
+
+        init_player_creatures(self.player_1, 0)
+        init_player_creatures(self.player_2, self.board.size_y - 1)
+        self.display_game()
+
     def remove_fainted_commands(commands):
-        return [command for command in commands if not command.creature.is_fainted and command.move_target is not None]
+        return [command for command in commands if not command.creature_state.is_fainted and command.move_target is not None]
 
     def display_game(self):
         logging.debug(f"Turn {self.turn_number}")
         logging.debug(self.board)
 
     def find_creature_in_match(self, creature_id):
-        return next((c for c in self.player_1.creatures + self.player_2.creatures if c.id == creature_id), None)
+        return next((c for c in self.player_1.creatures + self.player_2.creatures if str(c.id) == creature_id), None)
+
+    def find_creature_state(self, creature_state_id):
+        return next((cs for cs in self.creature_states if str(cs.id) == creature_state_id), None)
 
     def get_match_creatures(self):
         creatures = []
@@ -52,28 +90,26 @@ class Match:
         """Stores a tick to the match's record of its turns. The index of history should be
         equivalent to the turn number"""
         if len(self.history) == self.turn_number:
-            # add the next turn
+            # add the current turn. Base case is when len(history) == 0 at turn 0.
             self.history.append([])
         
         logging.debug(f"Storing tick for turn {self.turn_number} in match {self.id}")
         # store a list of creature states in dict form
-        self.history[self.turn_number].append(self.board.to_simple_dict())
+        self.history[self.turn_number].append({
+            "board": self.board.to_simple_dict(),
+            "creature_states": [{**cs.to_simple_dict(), **cs.creature.to_simple_dict()} for cs in self.creature_states]
+        })
 
-    def start_game(self):
-        self.init_creature_positions()
-        self.store_tick()
-        self.turn_number = 1
+        def trick_sqlalchemy():
+            """Forces SQLalchemy to think the history has been updated.
+            The docs suggest creating a subclass of MutableList to track the changes of sublists, but it didn't work."""
+            # TODO: Get the documentation's suggested method to work.
+            # https://docs.sqlalchemy.org/en/20/orm/extensions/mutable.html#sqlalchemy.ext.mutable.MutableList
+            self.history.append([])
+            self.history.pop()
+            logging.debug(f"Were changes to the match's history tracked by SQLAlchemy? {inspect(self).attrs.history.history.has_changes()}")
+        trick_sqlalchemy()
 
-    def init_creature_positions(self):
-        """Place the players' creatures on the board when the game starts"""
-        def init_player_creatures(player, y_pos):
-            creature_spacing = floor(self.board.size_x / len(player.creatures))
-            for index, creature in enumerate(player.creatures):
-                creature.set_position(self.board[index * creature_spacing][y_pos])
-
-        init_player_creatures(self.player_1, 0)
-        init_player_creatures(self.player_2, self.board.size_y - 1)
-        self.display_game()
 
     def play_turn(self, all_turn_commands):
         """All turn command is a dict of the command lists submitted by each player"""
@@ -81,15 +117,16 @@ class Match:
         self.display_game()
 
         # perform actions
+
         # TODO: determine a sensible order for creature actions to happen
         def perform_action(command):
-            if command.creature.is_fainted or command.action is None:
+            if command.creature_state.is_fainted or command.action is None:
                 return
-            for pos in command.action.get_affected_positions(command.creature.position, command.action_target):
-                if pos.creature_id is not None and pos.creature_id != command.creature.id:
-                    receiver = self.find_creature_in_match(pos.creature_id)
+            for pos in command.action.get_affected_positions(command.creature_state.position, command.action_target):
+                if pos.creature_state is not None and pos.creature_state.id != command.creature_state.id:
+                    receiver = pos.creature_state
                     receiver.receive_action(command.action)
-                    logging.debug(f"{receiver.nickname} is hit")
+                    logging.debug(f"{receiver.creature.nickname} is hit")
                     if receiver.is_fainted:
                         logging.debug("knock out")
 
@@ -107,6 +144,7 @@ class Match:
         self.display_game()
 
         # perform moves
+
         creature_moves = all_turn_commands["player_1"] + all_turn_commands["player_2"]
         # execute each move command until all creatures run out of moves
         do_moves_remain = True
@@ -116,27 +154,24 @@ class Match:
                 next_position = command.get_next_move()
                 if next_position is not None:
                     do_moves_remain = True
-                    command.creature.set_position(next_position)
+                    command.creature_state.set_position(next_position)
                     self.store_tick()
             self.display_game()
         
         if self.check_game_over():
             self.end_game()
-            return
         else:
             self.turn_number += 1
             self.display_game()
 
     def check_game_over(self):
         """Assumes there are only two players"""
-        for player in [self.player_1, self.player_2]:
-            if all(map(lambda creature: creature.is_fainted, player.creatures)):
-                return True
-        return False
+        return all(map(lambda creature_state: creature_state.is_fainted, self.creature_states))
     
     def end_game(self):
         """Assumes there are only two players"""
-        # TODO: save the match history and result in database
+        # TODO: save the match result in database
+        # TODO: clear redis for the match and players
         self.active = False
         logging.debug("Game Over")
 
@@ -147,16 +182,24 @@ class Match:
             logging.debug(f"The winner is {winner.name}!")
             
     def get_winner(self):
+        # TODO: revise so that an unstarted match has no winner
         """Assumes there are only two players"""
         if self.active is True:
             return None
         
-        for player in [self.player_1, self.player_2]:
-            if any(map(lambda creature: not creature.is_fainted, player.creatures)):
-                return player
-        
+        p1_creatures = filter(lambda cs: cs.player_id == self.player_1.id, self.creature_states)
+        p2_creatures = filter(lambda cs: cs.player_id == self.player_2.id, self.creature_states)
+
+        if any(map(lambda cs: not cs.is_fainted, p1_creatures)):
+            return self.player_1
+        if any(map(lambda cs: not cs.is_fainted, p2_creatures)):
+            return self.player_2
+
         # everyone lost
         return None
+    
+    def get_redis_channel(self):
+        return f"MATCH_{self.id}"
     
     def to_simple_dict(self):
         """Aids the JSON serialization of Match objects. Expects to be called
@@ -168,5 +211,6 @@ class Match:
             "turn_number": self.turn_number,
             "active": self.active,
             "board": self.board.to_simple_dict(),
+            "creature_states": [cs.to_simple_dict() for cs in self.creature_states],
             "history": self.history
         }
