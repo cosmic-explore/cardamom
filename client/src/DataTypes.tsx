@@ -60,3 +60,8 @@ export type PlayerData = {
     name: string
     creatures: CreatureData[]
 }
+
+export type PlayerMatches = {
+    current: string
+    finished: string[]
+}

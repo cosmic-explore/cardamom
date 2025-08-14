@@ -14,6 +14,7 @@ from classes.command import Command
 from game_logic.match_handler import (
     attempt_join_match,
     get_active_match_of_player,
+    get_player_finished_matches,
     start_match,
     publish_match_state,
     get_player_commands,
@@ -74,6 +75,18 @@ def login():
         session["player_name"] = player_name
         logging.debug(f"Logged in {player.name}")
         return jsonify(player.to_simple_dict())
+
+@app.route('/player/matches', methods=['GET'])
+def get_player_matches():
+    """Returns a JSON object containing the ids of the active game and a list of finished games"""
+    player_name = session.get("player_name")
+    player = Player.find_by_name(db, player_name)
+    current_match = get_active_match_of_player(db, player)
+    finished_match_ids = get_player_finished_matches(db, player)
+    return jsonify({
+        "current": None if current_match is None else str(current_match.id),
+        "finished": [str(id) for id in finished_match_ids]
+    })
 
 @app.route('/match/join', methods=['GET'])
 def join_match():

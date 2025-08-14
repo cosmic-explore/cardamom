@@ -31,7 +31,11 @@ export function Board(props: BoardProps) {
     const watchTurn = async () => {
         // the previous turn (whose outcome is the current board state) will be
         // the current turn_number - 1
-        const turn = props.matchData.history[props.matchData.turn_number - 1]
+        // the game is inactive on the first turn, or when the game is over
+        const turnToWatch = props.matchData.active
+            ? props.matchData.turn_number - 1
+            : props.matchData.turn_number
+        const turn = props.matchData.history[turnToWatch]
         for (let i = 0; i < turn.length; i++) {
             SetColumns(turn[i].board.columns)
             await new Promise((r) => setTimeout(r, 200))

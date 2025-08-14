@@ -74,6 +74,13 @@ class Match(db.Model):
             creatures.extend(self.player_2.creatures)
         return creatures
 
+    def get_player_creature_states(self, player):
+        return [cs for cs in self.creature_states if cs.creature.player_id == player.id]
+    
+    def has_player_lost(self, player):
+        player_creature_states = self.get_player_creature_states(player)
+        return all(map(lambda creature_state: creature_state.is_fainted, player_creature_states)) 
+
     def get_player_number(self, player):
         if self.player_1 and self.player_1.name == player.name:
             return 1
@@ -110,11 +117,11 @@ class Match(db.Model):
             logging.debug(f"Were changes to the match's history tracked by SQLAlchemy? {inspect(self).attrs.history.history.has_changes()}")
         trick_sqlalchemy()
 
-
     def play_turn(self, all_turn_commands):
         """All turn command is a dict of the command lists submitted by each player"""
         logging.debug(f"Adjudicating turn {self.turn_number} for match {self.id}")
         self.display_game()
+        self.store_tick()
 
         # perform actions
 
@@ -166,12 +173,10 @@ class Match(db.Model):
 
     def check_game_over(self):
         """Assumes there are only two players"""
-        return all(map(lambda creature_state: creature_state.is_fainted, self.creature_states))
+        return self.has_player_lost(self.player_1) or self.has_player_lost(self.player_2)
     
     def end_game(self):
         """Assumes there are only two players"""
-        # TODO: save the match result in database
-        # TODO: clear redis for the match and players
         self.active = False
         logging.debug("Game Over")
 
@@ -182,20 +187,16 @@ class Match(db.Model):
             logging.debug(f"The winner is {winner.name}!")
             
     def get_winner(self):
-        # TODO: revise so that an unstarted match has no winner
         """Assumes there are only two players"""
         if self.active is True:
             return None
         
-        p1_creatures = filter(lambda cs: cs.player_id == self.player_1.id, self.creature_states)
-        p2_creatures = filter(lambda cs: cs.player_id == self.player_2.id, self.creature_states)
-
-        if any(map(lambda cs: not cs.is_fainted, p1_creatures)):
+        if not self.has_player_lost(self.player_1) and self.has_player_lost(self.player_2):
             return self.player_1
-        if any(map(lambda cs: not cs.is_fainted, p2_creatures)):
+        if not self.has_player_lost(self.player_2) and self.has_player_lost(self.player_1):
             return self.player_2
 
-        # everyone lost
+        # no one has lost yet
         return None
     
     def get_redis_channel(self):

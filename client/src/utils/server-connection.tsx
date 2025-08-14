@@ -6,7 +6,8 @@ import {
     HOST_ROOT,
     GET_CREATURE_MOVE_ROUTE,
     SUBMIT_MATCH_COMMANDS,
-    GET_STORED_COMMANDS
+    GET_STORED_COMMANDS,
+    GET_PLAYER_MATCHES
 } from '../constants/server-endpoints'
 import { CommandData } from '../DataTypes'
 
@@ -41,6 +42,11 @@ const buildGetRequest = (): RequestInit => {
 export const login = async (playerName: string) => {
     const requestBody = JSON.stringify({ player_name: playerName })
     const response = await fetch(LOGIN, buildPostRequest(requestBody))
+    return response.json()
+}
+
+export const getPlayerMatches = async () => {
+    const response = await fetch(GET_PLAYER_MATCHES, buildGetRequest())
     return response.json()
 }
 

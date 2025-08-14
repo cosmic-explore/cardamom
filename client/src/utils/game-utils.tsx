@@ -1,4 +1,4 @@
-import { CreatureData, CreatureState, MatchData, PositionData } from '../DataTypes'
+import { CreatureData, CreatureState, MatchData, PlayerData, PositionData } from '../DataTypes'
 
 export const arePositionsSame = (pos1: PositionData, pos2: PositionData): boolean => {
     return pos1.x === pos2.x && pos1.y === pos2.y
@@ -12,6 +12,10 @@ export const getActivePlayer = (playerName: string, matchData: MatchData) => {
         // there are only two players
         return matchData.player_2
     }
+}
+
+export const isMatchOver = (match: MatchData): boolean => {
+    return !match.active && match.turn_number > 0
 }
 
 export const getMatchCreature = (match: MatchData, creatureId: string): CreatureData => {
@@ -34,4 +38,8 @@ export const getMatchCreatureState = (match: MatchData, creatureStateId: string)
     } else {
         return creatureState
     }
+}
+
+export const isOwnedCreature = (player: PlayerData, creatureId: string): boolean => {
+    return player.creatures.some((c) => c.id === creatureId)
 }

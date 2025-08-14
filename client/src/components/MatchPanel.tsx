@@ -19,7 +19,12 @@ import {
     getStoredCommands,
     refreshMatch
 } from '../utils/server-connection'
-import { arePositionsSame, getActivePlayer, getMatchCreatureState } from '../utils/game-utils'
+import {
+    arePositionsSame,
+    getActivePlayer,
+    getMatchCreatureState,
+    isMatchOver
+} from '../utils/game-utils'
 
 export type CommandState = {
     p1Submitted: boolean
@@ -40,13 +45,15 @@ export const MatchPanel = (props: {
     const [replayingTurn, setReplayingTurn] = useState<boolean>(false)
 
     useEffect(() => {
-        getStoredCommands().then((data) => {
-            if (data.length !== 0) {
-                setCommands(data)
-            } else {
-                setCommands(fillBlankCommands(props.matchData, props.playerData.name))
-            }
-        })
+        if (!isMatchOver(props.matchData)) {
+            getStoredCommands().then((data) => {
+                if (data.length !== 0) {
+                    setCommands(data)
+                } else {
+                    setCommands(fillBlankCommands(props.matchData, props.playerData.name))
+                }
+            })
+        }
     }, [props.commandState])
 
     useEffect(() => {
@@ -55,14 +62,12 @@ export const MatchPanel = (props: {
 
     useEffect(() => {
         setSelectedPos(null)
-        updatePositionHighlights()
         if (props.matchData.turn_number > 0) {
             setReplayingTurn(true)
         }
     }, [props.matchData])
 
     const updatePositionHighlights = () => {
-        // TODO: use action id instead of name
         // highlight the appropriate positions if a creature is selected
         setHighlightedPosList([])
 
@@ -161,10 +166,6 @@ export const MatchPanel = (props: {
         )
         newCommands.push(updatingCommand)
         setCommands(newCommands)
-    }
-
-    const isOwnedCreature = (creatureId: string): boolean => {
-        return props.playerData.creatures.some((c) => c.id === creatureId)
     }
 
     const isControlledCreatureState = (creatureStateId: string): boolean => {

@@ -8,7 +8,6 @@ from sqlalchemy import select, and_, or_
 from constants import MATCH_UPDATE, COMMAND_UPDATE, NULL_STR
 from classes.match import Match
 from classes.board import Board
-from classes.creature import CreatureState
 from connection_util.redis_util import game_notification, match_from_json, commands_from_json_and_match
 
 redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
@@ -126,6 +125,24 @@ def get_active_match_by_id(match_id):
     match_json = redis_connection.get(match_id)
     return None if match_json is None else match_from_json(match_json)
 
+def get_player_finished_matches(db, player):
+    return db.session.scalars(select(Match.id).where(
+        and_(
+            Match.active == False,
+            Match.turn_number != 0,
+            or_(Match.player_1_id == player.id, Match.player_2_id == player.id)
+        )
+    )).all()
+
+def remove_match_from_redis(match):
+    logging.debug(f"Removing match {match.id} from redis")
+    redis_connection.delete(match.get_redis_channel())
+    redis_connection.delete(match.player_1.get_redis_active_match_key())
+    redis_connection.delete(match.player_2.get_redis_active_match_key())
+    redis_connection.delete(get_match_player_command_key(match, 1))
+    redis_connection.delete(get_match_player_command_key(match, 2))
+    # As soon as all clients break the connection, the match redis channel will be removed automatically
+
 
 ### COMMAND SUBMISSION
 
@@ -181,13 +198,13 @@ def submit_commands(db, player_number, commands, match):
     else:
         publish_command_update(match)
 
-def adjudicate_commands(db, match):
+def adjudicate_commands(db, untracked_match):
     """Execute the commands, cache the new Match state in redis, reset the
     command cache for the match, and alert players that a new turn has begun"""
-    logging.debug(f"Adjudicating turn {match.turn_number} for match {match.id}")
+    logging.debug(f"Adjudicating turn {untracked_match.turn_number} for match {untracked_match.id}")
 
     # retrieve the match and command creature states from postgres so that saving works properly
-    db_match = db.session.scalars(select(Match).where(Match.id == match.id)).one()
+    db_match = db.session.scalars(select(Match).where(Match.id == untracked_match.id)).one()
     
     db_match.play_turn(get_match_commands(db_match))
     update_and_store_match(db, db_match)
@@ -195,6 +212,10 @@ def adjudicate_commands(db, match):
 
     publish_match_state(db_match)
     publish_command_update(db_match)
+
+    # clear redis for the match and players if the game ends
+    if db_match.get_winner() is not None:
+        remove_match_from_redis(db_match)
 
 def get_match_player_command_key(match, player_number):
     return f"{str(match.id)}_{player_number}_commands"

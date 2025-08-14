@@ -1,26 +1,30 @@
 import { useState } from 'react'
 import './App.css'
-import { login, joinMatch, refreshMatch } from './utils/server-connection.tsx'
+import { login, joinMatch, refreshMatch, getPlayerMatches } from './utils/server-connection.tsx'
 import { Button } from '@radix-ui/themes'
 import { LoginPanel } from './components/LoginPanel.tsx'
 import { CommandState, MatchPanel } from './components/MatchPanel.tsx'
-import { MatchData, PlayerData } from './DataTypes.tsx'
+import { MatchData, PlayerData, PlayerMatches } from './DataTypes.tsx'
 import { COMMAND_UPDATE, MATCH_UPDATE } from './constants/game-constants.tsx'
 import { getMatchCreature } from './utils/game-utils.tsx'
 
 function App() {
     const [playerData, setPlayerData] = useState<PlayerData>()
+    const [playerMatches, setPlayerMatches] = useState<PlayerMatches>()
     const [matchData, setMatchData] = useState<MatchData>()
     const [commandState, setCommandState] = useState<CommandState>({
         p1Submitted: false,
         p2Submitted: false
     })
 
-    const handleLogin = (inputText: string) => {
-        login(inputText).then((responseJson) => {
-            console.log(responseJson)
-            setPlayerData(responseJson)
-        })
+    const handleLogin = async (inputText: string) => {
+        const playerData = await login(inputText)
+        console.log(playerData)
+        setPlayerData(playerData)
+
+        const matchData = await getPlayerMatches()
+        console.log(matchData)
+        setPlayerMatches(matchData)
     }
 
     const handleJoinMatch = () => {
@@ -68,18 +72,36 @@ function App() {
                     {playerData ? '' : <LoginPanel onSubmit={handleLogin} />}
                     {playerData ? <div>User: {playerData.name}</div> : ''}
                 </div>
-                <div className="grow-1">
-                    {matchData && playerData ? (
+                {matchData && playerData ? (
+                    <div className="grow-1">
                         <MatchPanel {...{ matchData, playerData, commandState }} />
-                    ) : (
-                        ''
-                    )}
-                    {playerData && !matchData ? (
-                        <Button onClick={handleJoinMatch}>Join Match</Button>
-                    ) : (
-                        ''
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    ''
+                )}
+                {playerData && !matchData ? (
+                    <div className="flex flex-row grow-1">
+                        <div className="grow-1">
+                            {playerMatches?.current ? (
+                                <Button style={{ cursor: 'pointer' }} onClick={handleJoinMatch}>
+                                    Rejoin {playerMatches.current}
+                                </Button>
+                            ) : (
+                                <Button style={{ cursor: 'pointer' }} onClick={handleJoinMatch}>
+                                    Join Match
+                                </Button>
+                            )}
+                        </div>
+                        <div>
+                            <h2>Finished Matches</h2>
+                            {playerMatches?.finished?.map((matchId) => (
+                                <li key={matchId}>{matchId}</li>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    ''
+                )}
             </div>
         </>
     )
