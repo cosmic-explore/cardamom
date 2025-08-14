@@ -23,6 +23,7 @@ import {
     arePositionsSame,
     getActivePlayer,
     getMatchCreatureState,
+    getMatchWinner,
     isMatchOver
 } from '../utils/game-utils'
 
@@ -218,7 +219,7 @@ export const MatchPanel = (props: {
     return (
         <div className="flex flex-row">
             <div className="flex flex-col items-center">
-                <div className="mb-1">{props.matchData.id}</div>
+                <h2 className="mb-1">{props.matchData.id}</h2>
                 <div>Turn {props.matchData.turn_number}</div>
                 <div className="flex flex-row mb-3">
                     <div>
@@ -243,6 +244,11 @@ export const MatchPanel = (props: {
                         )}
                     </div>
                 </div>
+                {isMatchOver(props.matchData) ? (
+                    <div>Game over - WINNER: {getMatchWinner(props.matchData)?.name || 'DRAW'}</div>
+                ) : (
+                    ''
+                )}
                 <Board
                     {...{
                         matchData: props.matchData,

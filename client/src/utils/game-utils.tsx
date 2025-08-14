@@ -40,6 +40,28 @@ export const getMatchCreatureState = (match: MatchData, creatureStateId: string)
     }
 }
 
+export const getMatchWinner = (match: MatchData): PlayerData | null => {
+    const hasPlayerLost = (player: PlayerData): boolean => {
+        return match.creature_states
+            .filter((cs) => cs.creature.player_id == player.id)
+            .every((cs) => cs.current_hp <= 0)
+    }
+
+    if (match.player_1 === null || match.player_2 === null) return null
+
+    if (!isMatchOver(match)) {
+        return null
+    } else {
+        if (!hasPlayerLost(match.player_1) && hasPlayerLost(match.player_2)) {
+            return match.player_1
+        }
+        if (!hasPlayerLost(match.player_2) && hasPlayerLost(match.player_1)) {
+            return match.player_1
+        }
+        return null // draw
+    }
+}
+
 export const isOwnedCreature = (player: PlayerData, creatureId: string): boolean => {
     return player.creatures.some((c) => c.id === creatureId)
 }
