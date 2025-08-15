@@ -5,3 +5,4 @@ flask_oauthlib
 redis
 psycopg2
 Flask-SQLAlchemy
+gunicorn

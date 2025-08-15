@@ -20,6 +20,14 @@ services:
       - "8888:5000"
     volumes:
       - ./server:/usr/src/cardamom
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server
   redis:
     image: redis
     ports:

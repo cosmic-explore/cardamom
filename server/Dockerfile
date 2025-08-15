@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5000
 
 # start the server
-CMD ["python", "./app.py", "--host=0.0.0.0", "--debug"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--workers=4"]

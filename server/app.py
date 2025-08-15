@@ -7,6 +7,7 @@ import redis
 from flask import Flask, Response, request, jsonify, session
 from flask_session import Session
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 from connection_util.postgres_util import create_and_seed_postgres
 from classes.base import db
 from classes.player import Player
@@ -25,6 +26,8 @@ from game_logic.match_handler import (
 app = Flask(__name__)
 
 # TODO: deployment-ready config
+# needed for configuring flask to use a proxy server
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # configure sqlalchemy
 # docker adds "database" to the DNS
@@ -190,4 +193,5 @@ def get_match_from_session():
     return get_active_match_of_player(db, player)
 
 if __name__ == "__main__":
+    # can run the app without guinicorn in development
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
