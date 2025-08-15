@@ -31,18 +31,19 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # configure sqlalchemy
 # docker adds "database" to the DNS
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://dev_user:dev_password@database:5432/dev_user"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URI")
 db.init_app(app)
 create_and_seed_postgres(app, db)
 
 # configure redis
-app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_REDIS'] = redis.from_url('redis://redis:6379') # docker adds "redis" to the DNS
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'  # Allow cross-origin cookies
-app.config['SESSION_COOKIE_SECURE'] = True
-app.secret_key = os.getenv('SECRET_KEY', default='DEV_SECRET_KEY')
+app.config["SESSION_TYPE"] = "redis"
+app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL"))
+app.config["SESSION_COOKIE_SAMESITE"] = "None"  # Allow cross-origin cookies
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["ENV"] = os.environ.get("FLASK_ENV")
+app.secret_key = os.environ.get("SECRET_KEY")
 server_session = Session(app)
-redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+redis_connection = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
 
 # configure cors
 CORS(app, origins=["http://localhost:5173"], supports_credentials=True)

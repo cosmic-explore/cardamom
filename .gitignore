@@ -1,6 +1,10 @@
 **/__pycache__/*
 db/data/
 
+# even the dev config can expose sensitive info
+.env.dev
+.env.prod
+
 # client
 
 # Logs
