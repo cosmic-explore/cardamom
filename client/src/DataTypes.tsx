@@ -18,9 +18,18 @@ export type CommandData = {
     action_target: PositionData | null
 }
 
+export type SpeciesData = {
+    id: string
+    name: string
+    base_attack: string
+    base_hp: string
+    base_speed: string
+}
+
 export type CreatureData = {
     id: string
     species_id: string
+    species: SpeciesData
     player_id: string
     nickname: string
     level: number

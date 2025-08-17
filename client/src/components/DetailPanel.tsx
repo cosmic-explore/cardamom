@@ -14,12 +14,12 @@ export function DetailPanel(props: {
                     <div className="flex">
                         <div>
                             <CreatureIcon
-                                {...{ speciesName: props.creatureState.creature.species_id }}
+                                {...{ speciesName: props.creatureState.creature.species.name }}
                             />
                         </div>
                         <div>
                             {props.creatureState.creature.nickname} -{' '}
-                            {props.creatureState.creature.species_id}
+                            {props.creatureState.creature.species.name}
                         </div>
                     </div>
                     <div>Level: {props.creatureState.creature.level}</div>

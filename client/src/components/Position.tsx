@@ -28,7 +28,7 @@ export function Position(props: PositionProps) {
             style={{ cursor: 'pointer' }}
         >
             {props.creatureState ? (
-                <CreatureIcon {...{ speciesName: props.creatureState.creature.nickname }} />
+                <CreatureIcon {...{ speciesName: props.creatureState.creature.species.name }} />
             ) : (
                 `${props.posData.x},${props.posData.y}`
             )}
