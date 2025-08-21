@@ -6,3 +6,4 @@ redis
 psycopg2
 Flask-SQLAlchemy
 gunicorn
+gevent

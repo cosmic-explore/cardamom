@@ -12,5 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expose the port the Flask app will run on
 EXPOSE 5000
 
-# start the server
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--workers=4"]
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]

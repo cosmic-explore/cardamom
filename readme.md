@@ -19,7 +19,7 @@ You can script games for testing by accessing the container that hosts the flask
 
 ### general
 
--   [ ] host project for play-testing
+-   [x] ~~host project for play-testing~~
 -   [ ] design fun and balanced creatures and abilities
 -   [ ] real accounts and authentication
 
@@ -48,14 +48,15 @@ You can script games for testing by accessing the container that hosts the flask
 -   [x] ~~seed database with test data~~
 -   [x] ~~proper logic for ending the game~~
 -   [x] ~~endpoint for player game history~~
+-   [ ] make all action within a match tick simultaneous
 -   [ ] provide useful error messages from server endpoints
 -   [ ] create registry of open matches in redis
 -   [ ] endpoint for open game lobby
 
 ### development todos
 
--   [ ] ~~frontend linting~~
+-   [x] ~~frontend linting~~
 -   [ ] backend linting
 -   [ ] debugging config for docker containers (VSCode debugger on app running in docker container)
 -   [ ] tests
--   [ ] deployment pipeline
+-   [ ] automated deployment pipeline

@@ -3,19 +3,19 @@ services:
     image: onthesafari/cardamom-client
     build:
       context: ./client
+    environment:
+      - VITE_HOST_ROOT=http://127.0.0.1:8888
     ports:
       - "5173:5173"
     volumes:
     # don't copy the node_modules to prevent the volume hosted on windows from overwriting the linux packages on the container
       - ./client/src:/usr/src/cardamom/src
     depends_on:
-      - nginx
+      - server
   server:
     image: onthesafari/cardamom-server
     env_file:
       - ${ENV_FILE:-.env.dev}
-    # environment:
-    #   - FLASK_ENV=${FLASK_ENV}
     build:
       context: ./server
     ports:
@@ -26,9 +26,13 @@ services:
       - database
       - redis
   nginx:
-    image: nginx
+    image: onthesafari/cardamom-nginx
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -38,14 +42,15 @@ services:
     ports:
       - "6379:6379"
   database:
-    image: "postgres"
+    image: "onthesafari/cardamom-postgres"
+    build:
+      context: ./db
     env_file:
       - ${ENV_FILE:-.env.dev}
     ports:
       - '5432:5432'
     volumes:
       - ./db/data:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d/
 volumes:
   database:
     driver: local

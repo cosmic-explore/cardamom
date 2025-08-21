@@ -1,5 +1,10 @@
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 from  psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
+
+from app import app, db
 
 # the following model classes will all be used to create tables in the db when
 # db.create_all() is called
@@ -12,7 +17,7 @@ from classes.board import Board
 from classes.position import Position
 
 def create_and_seed_postgres(app, db):
-    with app.app_context():        
+    with app.app_context():      
         db.create_all()
         seed_postgres(db)
 
@@ -54,3 +59,7 @@ def duplicate_safe_add_flush(db, record_to_add):
     except (UniqueViolation, IntegrityError):
         db.session.rollback()
         return None
+    
+if __name__ == "__main__":
+    logging.debug("Creating DB if it does not exist")
+    create_and_seed_postgres(app, db)

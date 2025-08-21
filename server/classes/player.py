@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 from sqlalchemy import String, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List
@@ -32,4 +35,9 @@ class Player(db.Model):
     
     @classmethod
     def find_by_name(cls, db, name):
-        return db.session.scalars(select(Player).where(Player.name == name)).one_or_none()
+        player = db.session.scalars(select(Player).where(Player.name == name)).one_or_none()
+        if player is not None:
+            logging.debug(f"Found player {player.name} in the database.")
+        else:
+            logging.debug(f"Warning: Could not find player {name} in the database.")
+        return player

@@ -3,14 +3,11 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import json
-import redis
 from sqlalchemy import select, and_, or_
 from constants import MATCH_UPDATE, COMMAND_UPDATE, NULL_STR
 from classes.match import Match
 from classes.board import Board
-from connection_util.redis_util import game_notification, match_from_json, commands_from_json_and_match
-
-redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+from connection_util.redis_util import game_notification, match_from_json, commands_from_json_and_match, get_redis_connection
 
 def initialize_match(db, player_1, player_2):
     """Initialize a match, store it in the db, and cache it in redis"""
@@ -46,6 +43,7 @@ def update_and_store_match(db, match):
 
 def update_match_redis(match):
     logging.debug(f"Updating match f{match.id} in redis")
+    redis_connection = get_redis_connection()
     redis_connection.set(f"MATCH_{str(match.id)}", json.dumps(match.to_simple_dict()))
 
 def update_match_postgres(db, match):
@@ -56,6 +54,7 @@ def update_match_postgres(db, match):
 def publish_match_state(match):
     match_redis_channel = match.get_redis_channel()
     logging.debug(f"publishing match update on channel {match_redis_channel}")
+    redis_connection = get_redis_connection()
     redis_connection.publish(match_redis_channel, game_notification(MATCH_UPDATE, redis_connection.get(match_redis_channel)))
 
 def attempt_join_match(db, player):
@@ -84,6 +83,7 @@ def attempt_join_match(db, player):
 def get_active_match_of_player(db, player):
     """Searches Redis, then Postgres"""
     # search redis
+    redis_connection = get_redis_connection()
     match_redis_key = redis_connection.get(player.get_redis_active_match_key())
     if match_redis_key is not None:
         logging.debug(f"Found match redis key {match_redis_key} for {player.name}")
@@ -117,11 +117,13 @@ def get_active_match_of_player(db, player):
             return None
         
 def set_redis_player_active_match(player, match):
+    redis_connection = get_redis_connection()
     redis_connection.set(player.get_redis_active_match_key(), match.get_redis_channel())
 
 def get_active_match_by_id(match_id):
     """Finds and returns match with given ID in redis"""
     logging.debug(f"looking for match {match_id} in redis")
+    redis_connection = get_redis_connection()
     match_json = redis_connection.get(match_id)
     return None if match_json is None else match_from_json(match_json)
 
@@ -136,6 +138,7 @@ def get_player_finished_matches(db, player):
 
 def remove_match_from_redis(match):
     logging.debug(f"Removing match {match.id} from redis")
+    redis_connection = get_redis_connection()
     redis_connection.delete(match.get_redis_channel())
     redis_connection.delete(match.player_1.get_redis_active_match_key())
     redis_connection.delete(match.player_2.get_redis_active_match_key())
@@ -158,6 +161,7 @@ def clear_match_commands(match, player_number=None):
         set_player_commands(match, 2, NULL_STR)
 
 def get_player_commands(match, player_number):
+    redis_connection = get_redis_connection()
     redis_json = redis_connection.get(get_match_player_command_key(match, player_number))
     if redis_json == NULL_STR:
         return []
@@ -169,6 +173,7 @@ def get_player_commands(match, player_number):
         return commands_from_json_and_match(redis_json, match)
 
 def set_player_commands(match, player_number, commands):
+    redis_connection = get_redis_connection()
     redis_connection.set(f"{get_match_player_command_key(match, player_number)}", commands)
 
 def get_match_command_state(match):
@@ -221,6 +226,7 @@ def get_match_player_command_key(match, player_number):
     return f"{str(match.id)}_{player_number}_commands"
 
 def publish_command_update(match):
+    redis_connection = get_redis_connection()
     # TODO: use the channel of the player's match
     logging.debug(f"publishing match command status on channel {match.get_redis_channel()}")
     redis_connection.publish(match.get_redis_channel(), game_notification(COMMAND_UPDATE, get_match_command_state(match)))

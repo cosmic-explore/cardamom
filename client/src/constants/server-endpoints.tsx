@@ -1,4 +1,4 @@
-export const HOST_ROOT = 'http://127.0.0.1:8888'
+export const HOST_ROOT = `${import.meta.env.VITE_HOST_ROOT}/api`
 
 export const LOGIN = `${HOST_ROOT}/login`
 export const GET_PLAYER_MATCHES = `${HOST_ROOT}/player/matches`
