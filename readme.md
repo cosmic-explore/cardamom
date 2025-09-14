@@ -12,7 +12,7 @@ You can run `docker exec -it container-name bash` (replace the container-name) t
 
 ### Running
 
-Navigate to the client at [localhost:5173](http://localhost:5173) and then login with one of the usernames designated in `init_db.py` to interact with the UI.
+Navigate to the client at [localhost:5173](http://localhost:5173) and then login with one of the usernames designated in `server/init_db.py` to interact with the UI.
 
 # Todo
 
