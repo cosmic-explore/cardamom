@@ -12,8 +12,7 @@ You can run `docker exec -it container-name bash` (replace the container-name) t
 
 ### Running
 
-Navigate to the client at [localhost:5173](http://localhost:5173) and then login with a username of your choice to interact with the UI.
-You can script games for testing by accessing the container that hosts the flask server and editing/running `game_logic/draft_game.py`.
+Navigate to the client at [localhost:5173](http://localhost:5173) and then login with one of the usernames designated in `server/init_db.py` to interact with the UI.
 
 # Todo
 
