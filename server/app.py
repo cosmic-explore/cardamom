@@ -44,7 +44,7 @@ app.secret_key = os.environ.get("SECRET_KEY")
 server_session = Session(app)
 
 # configure cors
-CORS(app, origins=[os.environ.get("CORS_ORIGIN")], supports_credentials=True)
+CORS(app, origins=[*os.environ.get("CORS_ORIGIN").split(",")], supports_credentials=True)
 
 def event_stream(channel):
     """Streams events from the given redis channel"""
