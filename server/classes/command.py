@@ -9,7 +9,6 @@ class Command:
     def __init__(self, creature_state, move_target, action, action_target):
         self.creature_state = creature_state
         self.move_target = move_target
-        self.moves_remaining = creature_state.creature.speed
         self.action = action
         self.action_target = action_target
 
@@ -30,15 +29,11 @@ class Command:
         )
 
     def get_next_move(self):
-        if self.moves_remaining >= 1:
-            self.moves_remaining -= 1
-            return (
-                self.creature_state.position.board.get_next_pos_in_path(
-                    self.creature_state.position, self.move_target
-                )
+        return (
+            self.creature_state.position.board.get_next_pos_in_path(
+                self.creature_state.position, self.move_target
             )
-        else:
-            return None
+        )
         
     def to_simple_dict(self):
         """Aids the JSON serialization of Command objects. Expects to be called
@@ -46,7 +41,6 @@ class Command:
         return {
             "creature_state_id": str(self.creature_state.id),
             "move_target": None if self.move_target is None else self.move_target.to_simple_dict(),
-            "moves_remaining": self.moves_remaining,
             "action": None if self.action is None else self.action.to_simple_dict(),
             "action_target":None if self.action_target is None else self.action_target.to_simple_dict()
         }

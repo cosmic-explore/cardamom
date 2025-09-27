@@ -117,19 +117,56 @@ class Match(db.Model):
             logging.debug(f"Were changes to the match's history tracked by SQLAlchemy? {inspect(self).attrs.history.history.has_changes()}")
         trick_sqlalchemy()
 
-    def play_turn(self, all_turn_commands):
-        """All turn command is a dict of the command lists submitted by each player"""
+    def play_turn(self, turn_commands):
+        """
+        - Move all creatures simultaneously
+        - Perform all actions simultaneously
+        All turn command is a dict of the command lists submitted by each player"""
         logging.debug(f"Adjudicating turn {self.turn_number} for match {self.id}")
         self.display_game()
         self.store_tick()
 
+        combined_turn_commands = turn_commands["player_1"] + turn_commands["player_2"]
+
+        # perform moves
+
+        def get_next_move_str(command):
+            # returns a str representation of a position to use as a key in the map
+            move_target = command.get_next_move()
+            if move_target is not None:
+                return move_target.print_coords() # get the string representation of the position
+            else:
+                return None
+
+        def get_next_tick_moves(creature_moves):
+            # returns a map of the number of creatures trying to move to each move target
+            move_targets = {}
+            for command in creature_moves:
+                move_target = get_next_move_str(command)
+                if move_target is not None:
+                    move_targets[move_target] = move_targets.get(move_target, 0) + 1
+            return move_targets
+
+        adjudicating_moves = True
+        move_tick_num = 0
+        while adjudicating_moves:
+            adjudicating_moves = False
+            current_tick_move_target_map = get_next_tick_moves(combined_turn_commands)
+            for command in combined_turn_commands:
+                if move_tick_num < command.creature_state.creature.speed:
+                    move_target = get_next_move_str(command)
+                    # only move the creature if there are no other creatures with the same move target
+                    if move_target is not None and current_tick_move_target_map[move_target] == 1:
+                        adjudicating_moves = True
+                        command.creature_state.set_position(command.get_next_move())
+            move_tick_num += 1
+            self.store_tick()
+            self.display_game()
+
         # perform actions
 
-        # TODO: determine a sensible order for creature actions to happen
-        def perform_action(command):
-            if command.creature_state.is_fainted or command.action is None:
-                return
-            for pos in command.action.get_affected_positions(command.creature_state.position, command.action_target):
+        def perform_action(command, action_tick_num):
+            for pos in command.action.get_affected_positions_at_tick(command.creature_state.position, command.action_target, action_tick_num):
                 if pos.creature_state is not None and pos.creature_state.id != command.creature_state.id:
                     receiver = pos.creature_state
                     receiver.receive_action(command.action)
@@ -137,33 +174,23 @@ class Match(db.Model):
                     if receiver.is_fainted:
                         logging.debug("knock out")
 
-        for command in all_turn_commands["player_1"]:
-            perform_action(command)
-            self.store_tick()
-        for command in all_turn_commands["player_2"]:
-            perform_action(command)
-            self.store_tick()
-        
-        # remove the remaning commands of creatures that fainted after actions
-        all_turn_commands["player_1"] = Match.remove_fainted_commands(all_turn_commands["player_1"])
-        all_turn_commands["player_2"] = Match.remove_fainted_commands(all_turn_commands["player_2"])
+        adjudicating_actions = True
+        action_tick_num = 0
+        # perform actions of all creatures who were not fainted at the start of the action phase
+        action_commands = [
+            command for command in combined_turn_commands
+            if not command.creature_state.is_fainted and command.action is not None
+        ]
+        while adjudicating_actions:
+            adjudicating_actions = False
+            for command in action_commands:
+                if action_tick_num < command.action.reach:
+                    logging.debug(f"tick {action_tick_num} reach {command.action.reach}")
+                    adjudicating_actions = True
+                    perform_action(command, action_tick_num)
+                action_tick_num += 1
 
-        self.display_game()
-
-        # perform moves
-
-        creature_moves = all_turn_commands["player_1"] + all_turn_commands["player_2"]
-        # execute each move command until all creatures run out of moves
-        do_moves_remain = True
-        while do_moves_remain:
-            do_moves_remain = False
-            for command in creature_moves:
-                next_position = command.get_next_move()
-                if next_position is not None:
-                    do_moves_remain = True
-                    command.creature_state.set_position(next_position)
-                    self.store_tick()
-            self.display_game()
+        # end the turn
         
         if self.check_game_over():
             self.end_game()
