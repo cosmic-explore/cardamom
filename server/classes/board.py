@@ -82,6 +82,13 @@ class Board(db.Model):
             # if pos is not position and 
             if self.get_distance(pos, position) <= distance
         ]
+    
+    def get_positions_at_distance(self, position, distance):
+        return [
+            pos for pos
+            in flatten(self.columns)
+            if self.get_distance(pos, position) == distance
+        ]
 
     def get_next_pos_in_path(self, start, destination):
         """Returns the adjacent position that is closest to the destination"""
@@ -95,7 +102,7 @@ class Board(db.Model):
         # horizontals? Currently they are, and this sometimes leads to non-
         # intuitive paths
         
-        if start is destination:
+        if start is destination or destination is None:
             return None
 
         next_pos = start
@@ -104,6 +111,15 @@ class Board(db.Model):
                 next_pos = position
 
         return next_pos
+    
+    def get_full_path(self, start, destination):
+        """Returns an array of positions between start (exclusive) and destination (inclusive)"""
+        path = []
+        current_position = self.get_next_pos_in_path(start, destination)
+        while current_position != None:
+            path.append(current_position)
+            current_position = self.get_next_pos_in_path(current_position, destination)
+        return path
 
     def to_simple_dict(self):
         """Aids the JSON serialization of Match objects. Expects to be called

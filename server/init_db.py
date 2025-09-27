@@ -1,8 +1,10 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+from sqlalchemy import select
 from  psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
+from constants import ACTION_CAT_MELEE, ACTION_CAT_PROJECTILE, ACTION_CAT_BEAM, ACTION_CAT_RADIATE
 
 from app import app, db
 
@@ -27,26 +29,27 @@ def seed_postgres(db):
     
     # add test players
 
-    test_player_1 = Player(name="Safari")
-    test_player_2 = Player(name="Firehawk")
-    duplicate_safe_add_flush(db, test_player_1)
-    duplicate_safe_add_flush(db, test_player_2)
+    test_player_1 = duplicate_safe_add_flush(db, Player(name="Safari"))
+    test_player_2 = duplicate_safe_add_flush(db, Player(name="Firehawk"))
 
     # add test actions
 
-    test_action = Action("test attack", 5, 1)
-    duplicate_safe_add_flush(db, test_action)
+    test_action_melee = duplicate_safe_add_flush(db, Action("test melee", 1, 7, ACTION_CAT_MELEE))
+    test_action_projectile = duplicate_safe_add_flush(db, Action("test projectile", 6, 6, ACTION_CAT_PROJECTILE))
+    test_action_beam = duplicate_safe_add_flush(db, Action("test beam", 5, 2, ACTION_CAT_BEAM))
+    test_action_radiate = duplicate_safe_add_flush(db, Action("test radiate", 3, 1, ACTION_CAT_RADIATE))
 
     # add test species
 
-    test_species = (Species("Test Species", 1, 1, 4))
-    test_species.actions.append(test_action)
-    duplicate_safe_add_flush(db, test_species)
+    test_species = Species("Test Species", 1, 10, 4)
+    test_species.actions.extend([test_action_melee, test_action_projectile, test_action_beam, test_action_radiate])
+    test_species = duplicate_safe_add_flush(db, test_species)
 
     # add test creatures to players
 
-    duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "A"))
-    duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "B"))
+    if db.session.query(Creature.id).count() == 0:
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "A"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "B"))
 
     db.session.commit()
 
@@ -55,10 +58,12 @@ def duplicate_safe_add_flush(db, record_to_add):
     db.session.add(record_to_add)
     try:
         db.session.flush()
+        logging.debug(f"Seeded new {type(record_to_add).__name__} in DB")
         return record_to_add
     except (UniqueViolation, IntegrityError):
         db.session.rollback()
-        return None
+        record_class = type(record_to_add)
+        return db.session.scalars(select(record_class).where(record_class.name == record_to_add.name)).one()
     
 if __name__ == "__main__":
     logging.debug("Creating DB if it does not exist")
