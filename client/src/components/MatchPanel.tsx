@@ -295,7 +295,7 @@ export const MatchPanel = (props: {
                                     boxClickFunc: handleOrderBoxClick
                                 }}
                             />
-                            <div>Note: actions happen before moves</div>
+                            <div>Note: moves happen before actions</div>
                         </div>
                     ) : (
                         ''
