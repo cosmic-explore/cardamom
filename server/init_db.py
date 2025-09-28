@@ -31,6 +31,7 @@ def seed_postgres(db):
 
     test_player_1 = duplicate_safe_add_flush(db, Player(name="Safari"))
     test_player_2 = duplicate_safe_add_flush(db, Player(name="Firehawk"))
+    test_player_3 = duplicate_safe_add_flush(db, Player(name="Guest"))
 
     # add test actions
 
@@ -50,6 +51,7 @@ def seed_postgres(db):
     if db.session.query(Creature.id).count() == 0:
         duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "A"))
         duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "B"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_3.id, 1, "C"))
 
     db.session.commit()
 
