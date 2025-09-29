@@ -1,5 +1,5 @@
 import { CreatureState, PositionData } from '../DataTypes'
-import { CreatureIcon } from './CreatureSprite'
+import { GameSprite } from './GameSprite'
 
 export enum PosSelectionType {
     // values are Tailwind.css classnames for styling
@@ -21,17 +21,25 @@ export function Position(props: PositionProps) {
         props.clickFunc(props.posData)
     }
 
+    const showCoords = props.posData.effects.length == 0 && props.creatureState == null
+
     return (
         <div
             className={`${props.selectionType} size-12 outline hover:bg-sky-100 flex justify-center items-center`}
             onClick={handleClick}
             style={{ cursor: 'pointer' }}
         >
-            {props.creatureState ? (
-                <CreatureIcon {...{ speciesName: props.creatureState.creature.species.name }} />
+            {props.posData.effects.length > 0 ? (
+                <GameSprite {...{ spriteName: 'Action Effect' }} />
             ) : (
-                `${props.posData.x},${props.posData.y}`
+                ''
             )}
+            {props.creatureState != null ? (
+                <GameSprite {...{ spriteName: props.creatureState.creature.species.name }} />
+            ) : (
+                ''
+            )}
+            {showCoords ? `${props.posData.x},${props.posData.y}` : ''}
         </div>
     )
 }

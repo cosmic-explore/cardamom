@@ -166,7 +166,14 @@ class Match(db.Model):
         # perform actions
 
         def perform_action(command, action_tick_num):
-            for pos in command.action.get_affected_positions_at_tick(command.creature_state.position, command.action_target, action_tick_num):
+            affected_positions = command.action.get_affected_positions_at_tick(command.creature_state.position, command.action_target, action_tick_num)
+            for pos in affected_positions:
+                # add effect metadata to all affected positions (it will be stored in the turn history)
+                pos.effects.append({
+                    "action": command.action.to_simple_dict(),
+                    "creature": command.creature_state.creature.to_simple_dict(),
+                    "tick_num": action_tick_num
+                })
                 if pos.creature_state is not None and pos.creature_state.id != command.creature_state.id:
                     receiver = pos.creature_state
                     receiver.receive_action(command.action)
@@ -181,14 +188,23 @@ class Match(db.Model):
             command for command in combined_turn_commands
             if not command.creature_state.is_fainted and command.action is not None
         ]
+        
         while adjudicating_actions:
             adjudicating_actions = False
+
+            # clear all position effects from the previous tick
+            self.board.clear_all_position_effects()
+
             for command in action_commands:
                 if action_tick_num < command.action.reach:
-                    logging.debug(f"tick {action_tick_num} reach {command.action.reach}")
                     adjudicating_actions = True
                     perform_action(command, action_tick_num)
                 action_tick_num += 1
+
+            self.store_tick()
+        
+        # clear position effects from the last action tick
+        self.board.clear_all_position_effects()
 
         # end the turn
         

@@ -1,6 +1,6 @@
 import { Card } from '@radix-ui/themes'
 import { CreatureState, PositionData } from '../DataTypes'
-import { CreatureIcon } from './CreatureSprite'
+import { GameSprite } from './GameSprite'
 
 export function DetailPanel(props: {
     creatureState: CreatureState | null
@@ -13,8 +13,8 @@ export function DetailPanel(props: {
                 <div>
                     <div className="flex">
                         <div>
-                            <CreatureIcon
-                                {...{ speciesName: props.creatureState.creature.species.name }}
+                            <GameSprite
+                                {...{ spriteName: props.creatureState.creature.species.name }}
                             />
                         </div>
                         <div>

@@ -58,10 +58,17 @@ export type MatchData = {
     turn_number: number
 }
 
+export type PositionEffectData = {
+    action: ActionData
+    creature: CreatureData
+    tick_num: number
+}
+
 export type PositionData = {
     x: number
     y: number
     creature_state_id: string | null
+    effects: PositionEffectData[]
 }
 
 export type PlayerData = {

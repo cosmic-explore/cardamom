@@ -38,7 +38,7 @@ export function Board(props: BoardProps) {
         const turn = props.matchData.history[turnToWatch]
         for (let i = 0; i < turn.length; i++) {
             SetColumns(turn[i].board.columns)
-            await new Promise((r) => setTimeout(r, 200))
+            await new Promise((r) => setTimeout(r, 500))
         }
         props.finishReplay()
     }

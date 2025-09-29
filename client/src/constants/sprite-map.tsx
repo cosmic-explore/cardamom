@@ -1,3 +1,8 @@
-import TestSpecies from '../assets/sprites/TestSpecies.png' // need to import as module for it to work once built
+// need to import images as modules for them to work once built
+import ActionEffect from '../assets/sprites/ActionEffect.png'
+import TestSpecies from '../assets/sprites/TestSpecies.png'
 
-export const SpriteMap = new Map<string, string>([['Test Species', TestSpecies]])
+export const SpriteMap = new Map<string, string>([
+    ['Action Effect', ActionEffect],
+    ['Test Species', TestSpecies]
+])

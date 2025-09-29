@@ -121,6 +121,10 @@ class Board(db.Model):
             current_position = self.get_next_pos_in_path(current_position, destination)
         return path
 
+    def clear_all_position_effects(self):
+        for pos in self.positions:
+            pos.clear_effects()
+
     def to_simple_dict(self):
         """Aids the JSON serialization of Match objects. Expects to be called
         like json.dumps(board.to_simple_dict())."""
