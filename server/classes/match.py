@@ -196,10 +196,10 @@ class Match(db.Model):
             self.board.clear_all_position_effects()
 
             for command in action_commands:
-                if action_tick_num < command.action.reach:
+                if action_tick_num <= command.action.reach:
                     adjudicating_actions = True
                     perform_action(command, action_tick_num)
-                action_tick_num += 1
+            action_tick_num += 1
 
             self.store_tick()
         

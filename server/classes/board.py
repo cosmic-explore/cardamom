@@ -1,7 +1,6 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from math import sqrt
 from sqlalchemy import ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship, reconstructor
 from typing import List, Optional
@@ -66,12 +65,13 @@ class Board(db.Model):
         return board_representation
     
     def get_distance(self, position_1, position_2):
-        return abs(
-            sqrt(
-                ((position_2.x - position_1.x) ** 2) +
-                ((position_2.y - position_1.y) ** 2)
-            )
-        )
+        """Returns the distance between two positions. A diagonally adjacent
+        tile is treated as the same distance as a horizontal or vertical tile.
+        Because diagonal movement is allowed, the distance is effectively the greater
+        of the horizontal & vertical distance."""
+        diff_x = abs(position_1.x - position_2.x)
+        diff_y = abs(position_1.y - position_2.y)
+        return max([diff_x, diff_y])
 
     def get_positions_in_range(self, position, distance):
         # uses brute force rather than a pathing algorithm like BFS because
@@ -79,8 +79,7 @@ class Board(db.Model):
         return [
             pos for pos
             in flatten(self.columns)
-            # if pos is not position and 
-            if self.get_distance(pos, position) <= distance
+            if pos is not position and self.get_distance(pos, position) <= distance
         ]
     
     def get_positions_at_distance(self, position, distance):
@@ -92,15 +91,6 @@ class Board(db.Model):
 
     def get_next_pos_in_path(self, start, destination):
         """Returns the adjacent position that is closest to the destination"""
-        
-        # is each creature moving at a different speeds better, or is it simpler to
-        # have each creature simultaneously advancing one square at a time, with
-        # creatures that are faster moving for longer? This is now an
-        # implementation of the latter
-
-        # should diagonals be treated as further away than verticals and
-        # horizontals? Currently they are, and this sometimes leads to non-
-        # intuitive paths
         
         if start is destination or destination is None:
             return None

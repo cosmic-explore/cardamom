@@ -24,7 +24,7 @@ class Action(db.Model):
         """Expects a tick number >= 1"""
         board = start.board
 
-        if tick_num >= self.reach:
+        if tick_num > self.reach:
             return []
 
         if self.category == ACTION_CAT_MELEE:
