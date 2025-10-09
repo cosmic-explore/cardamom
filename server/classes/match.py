@@ -126,7 +126,11 @@ class Match(db.Model):
         self.display_game()
         self.store_tick()
 
-        combined_turn_commands = turn_commands["player_1"] + turn_commands["player_2"]
+        combined_turn_commands = [
+            command for command in
+            turn_commands["player_1"] + turn_commands["player_2"]
+            if not command.creature_state.is_fainted
+        ]
 
         # perform moves
 
@@ -184,10 +188,7 @@ class Match(db.Model):
         adjudicating_actions = True
         action_tick_num = 0
         # perform actions of all creatures who were not fainted at the start of the action phase
-        action_commands = [
-            command for command in combined_turn_commands
-            if not command.creature_state.is_fainted and command.action is not None
-        ]
+        action_commands = [command for command in combined_turn_commands if command.action is not None]
         
         while adjudicating_actions:
             adjudicating_actions = False
@@ -202,17 +203,28 @@ class Match(db.Model):
             action_tick_num += 1
 
             self.store_tick()
-        
-        # clear position effects from the last action tick
-        self.board.clear_all_position_effects()
 
         # end the turn
-        
+
+        self.turn_cleanup()
+
         if self.check_game_over():
             self.end_game()
         else:
             self.turn_number += 1
             self.display_game()
+
+    def turn_cleanup(self):
+        # clear position effects from the last action tick
+        self.board.clear_all_position_effects()
+
+        # clear up possible position conflicts in sqlalchemy
+        position_map = {str(cs.id): cs.position for cs in self.creature_states}
+        for creature_state in self.creature_states:
+            creature_state.position = None
+        db.session.flush()
+        for creature_state in self.creature_states:
+            creature_state.position = position_map[str(creature_state.id)]
 
     def check_game_over(self):
         """Assumes there are only two players"""
