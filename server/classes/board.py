@@ -91,14 +91,24 @@ class Board(db.Model):
 
     def get_next_pos_in_path(self, start, destination):
         """Returns the adjacent position that is closest to the destination"""
-        
         if start is destination or destination is None:
             return None
 
         next_pos = start
         for position in start.get_adjacent_positions():
-            if self.get_distance(position, destination) < self.get_distance(next_pos, destination):
+            current_distance = self.get_distance(position, destination)
+            lowest_distance = self.get_distance(next_pos, destination)
+
+            if current_distance < lowest_distance:
                 next_pos = position
+
+            elif current_distance == lowest_distance:
+                # there are cases in which a diagonal pos and a vertical/horizontal pos have an equal distance
+                # to the destination, so, in those cases, favor the horizontal/vertical path over the diagonal
+                # for consistency and predictability.
+                if ((abs(position.x - destination.x) < abs(next_pos.x - destination.x)) or
+                    (abs(position.y - destination.y) < abs(next_pos.y - destination.y))):
+                        next_pos = position
 
         return next_pos
     
