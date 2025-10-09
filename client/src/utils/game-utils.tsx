@@ -56,7 +56,7 @@ export const getMatchWinner = (match: MatchData): PlayerData | null => {
             return match.player_1
         }
         if (!hasPlayerLost(match.player_2) && hasPlayerLost(match.player_1)) {
-            return match.player_1
+            return match.player_2
         }
         return null // draw
     }
