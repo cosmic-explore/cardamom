@@ -303,9 +303,13 @@ export const MatchPanel = (props: {
                 </div>
             </div>
             <div className="flex flex-col">
-                <Button onClick={() => refreshMatch()}>Refresh Match Data</Button>
+                <Button onClick={() => refreshMatch()} style={{ cursor: 'pointer' }}>
+                    Refresh Match Data
+                </Button>
                 <div className="mb-2" />
-                <Button onClick={() => setReplayingTurn(true)}>Rewatch Turn</Button>
+                <Button onClick={() => setReplayingTurn(true)} style={{ cursor: 'pointer' }}>
+                    Rewatch Turn
+                </Button>
             </div>
         </div>
     )

@@ -12,7 +12,9 @@ export const LoginPanel = ({ onSubmit }: { onSubmit: Function }) => {
                 value={inputText}
                 onChange={(event) => setInputText(event.target.value)}
             />
-            <Button onClick={() => onSubmit(inputText)}>Login</Button>
+            <Button onClick={() => onSubmit(inputText)} style={{ cursor: 'pointer' }}>
+                Login
+            </Button>
         </div>
     )
 }
