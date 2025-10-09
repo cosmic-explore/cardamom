@@ -75,6 +75,11 @@ export const MatchPanel = (props: {
         if (selectedPos?.creature_state_id != null) {
             const creatureState = getCreatureStateFromId(selectedPos.creature_state_id)
             const targetedPos = getTargetedPos()
+            if (creatureState.creature.player_id !== props.playerData.id) {
+                // don't highlight positions when other player's creatures are selected
+                return
+            }
+
             if (commandMode === 'move') {
                 if (targetedPos === null) {
                     // ask the server for the possible moves
@@ -90,7 +95,7 @@ export const MatchPanel = (props: {
                     })
                 }
             } else {
-                // commandMode === 'action'
+                // command mode is 'action'
                 const currentAction = getCurrentAction()
                 if (!currentAction) return
 
