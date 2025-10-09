@@ -160,7 +160,7 @@ def get_action_affected(creature_state_id, action_id):
     action = creature_state.creature.find_action_of_creature(action_id)
     target = match.board[int(request.args.get("target_x"))][int(request.args.get("target_y"))]
     logging.debug(f"Finding affected positions for {action.id} from {creature_state.position} to {target}")
-    positions = action.get_affected_positions(creature_state.position, target)
+    positions = action.get_affected_positions_at_tick(creature_state.position, target)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
 @app.route('/api/match/submit', methods=['POST'])
