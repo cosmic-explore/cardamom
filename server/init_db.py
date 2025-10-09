@@ -49,9 +49,15 @@ def seed_postgres(db):
     # add test creatures to players
 
     if db.session.query(Creature.id).count() == 0:
-        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "A"))
-        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "B"))
-        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_3.id, 1, "C"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "Aardvark"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "Anaconda"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_1.id, 1, "Armadillo"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "Buffalo"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "Beaver"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_2.id, 1, "Bear"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_3.id, 1, "Capybara"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_3.id, 1, "Camel"))
+        duplicate_safe_add_flush(db, Creature(test_species.id, test_player_3.id, 1, "Cat"))
 
     db.session.commit()
 
