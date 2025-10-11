@@ -141,7 +141,7 @@ def get_move_route(id):
     destination = match.board[x_pos][y_pos]
     positions = creature_state.get_planned_move_path(destination)
     return jsonify([pos.to_simple_dict() for pos in positions])
-    
+
 @app.route('/api/creaturestates/<creature_state_id>/actions/<action_id>/targets', methods=['GET'])
 def get_action_targets(creature_state_id, action_id):
     """Returns a list of valid targets for the action"""
@@ -149,7 +149,13 @@ def get_action_targets(creature_state_id, action_id):
     match = get_match_from_session()
     creature_state = match.find_creature_state(creature_state_id)
     action = creature_state.creature.find_action_of_creature(action_id)
-    positions = match.board.get_positions_in_range(creature_state.position, action.reach)
+
+    action_origin_pos = creature_state.position
+    if request.args.get("origin_pos") is not None:
+        x, y = [int(coord) for coord in request.args.get("origin_pos").split(",")]
+        action_origin_pos = match.board[x][y]
+
+    positions = match.board.get_positions_in_range(action_origin_pos, action.reach)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
 @app.route('/api/creaturestates/<creature_state_id>/actions/<action_id>/affected', methods=['GET'])

@@ -101,7 +101,11 @@ export const MatchPanel = (props: {
 
                 if (targetedPos === null) {
                     // show all the positions in range to target
-                    getActionTargets(creatureState.id, currentAction.id).then((response) => {
+                    getActionTargets(
+                        creatureState.id,
+                        currentAction.id,
+                        getCurrentMoveTarget()
+                    ).then((response) => {
                         setHighlightedPosList(response)
                     })
                 } else {
@@ -127,6 +131,15 @@ export const MatchPanel = (props: {
                 getCreatureStateFromId(selectedPos.creature_state_id)
             )
             return commandMode === 'move' ? command.move_target : command.action_target
+        } else {
+            return null
+        }
+    }
+
+    const getCurrentMoveTarget = (): PositionData | null => {
+        if (selectedPos?.creature_state_id) {
+            return getCreatureCommand(getCreatureStateFromId(selectedPos.creature_state_id))
+                .move_target
         } else {
             return null
         }

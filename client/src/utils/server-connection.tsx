@@ -9,7 +9,7 @@ import {
     GET_STORED_COMMANDS,
     GET_PLAYER_MATCHES
 } from '../constants/server-endpoints'
-import { CommandData } from '../DataTypes'
+import { CommandData, PositionData } from '../DataTypes'
 
 type positionQueryParams = {
     target_x: string
@@ -75,8 +75,15 @@ export const getCreatureMoveRoute = async (
     return response.json()
 }
 
-export const getActionTargets = async (creatureStateId: string, actionId: string) => {
-    const url = `${HOST_ROOT}/creaturestates/${creatureStateId}/actions/${actionId}/targets`
+export const getActionTargets = async (
+    creatureStateId: string,
+    actionId: string,
+    originPos: PositionData | null
+) => {
+    let url = `${HOST_ROOT}/creaturestates/${creatureStateId}/actions/${actionId}/targets`
+    if (originPos !== null) {
+        url = url + '?' + new URLSearchParams({ origin_pos: `${originPos.x},${originPos.y}` })
+    }
     const response = await fetch(url, buildGetRequest())
     return response.json()
 }
