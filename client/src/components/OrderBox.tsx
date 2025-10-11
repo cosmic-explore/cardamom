@@ -1,4 +1,4 @@
-import { Box, Flex } from '@radix-ui/themes'
+import { Box, Container, Flex } from '@radix-ui/themes'
 import { Select } from 'radix-ui'
 import { ActionData, CommandData, CreatureState, PositionData } from '../DataTypes'
 
@@ -33,16 +33,16 @@ export const OrderBox = (props: OrderBoxProps) => {
         >
             <Flex>
                 <Box className="mr-5">{props.creatureState.creature.nickname}</Box>
-                <Box>
+                <Container>
                     <div
-                        className={`flex w-100 ${moveBorderStyle}`}
+                        className={`flex ${moveBorderStyle}`}
                         onClick={() => props.setCommandMode('move')}
                     >
                         <div className="mr-1">Move</div>
                         {props.command?.move_target?.x},{props.command?.move_target?.y}
                     </div>
                     <div
-                        className={`flex w-100 ${actionBorderStyle}`}
+                        className={`flex ${actionBorderStyle}`}
                         onClick={() => props.setCommandMode('action')}
                     >
                         <div className="mr-1">Action</div>
@@ -82,7 +82,7 @@ export const OrderBox = (props: OrderBoxProps) => {
                             {props.command?.action_target?.x},{props.command?.action_target?.y}
                         </div>
                     </div>
-                </Box>
+                </Container>
             </Flex>
         </Box>
     )
