@@ -216,6 +216,20 @@ export const MatchPanel = (props: {
         setSelectedPos(creatureState.position)
     }
 
+    const getMatchTitle = (): string => {
+        if (props.matchData.player_2 == null || props.matchData.player_1 == null) {
+            return 'Open Match'
+        } else {
+            let matchTitle = 'Match against '
+            if (props.matchData.player_1.name !== props.playerData.name) {
+                matchTitle += props.matchData.player_1.name
+            } else {
+                matchTitle += props.matchData.player_2.name
+            }
+            return matchTitle
+        }
+    }
+
     const playerCommandState =
         props.playerData.id === props.matchData.player_1?.id
             ? props.commandState.p1Submitted
@@ -224,7 +238,7 @@ export const MatchPanel = (props: {
     return (
         <div className="flex flex-row">
             <div className="flex flex-col items-center">
-                <h2 className="mb-1">{props.matchData.id}</h2>
+                <h2 className="mb-1">{getMatchTitle()}</h2>
                 <div>Turn {props.matchData.turn_number}</div>
                 <div className="flex flex-row mb-3">
                     <div>

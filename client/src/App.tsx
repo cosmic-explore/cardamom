@@ -84,7 +84,7 @@ function App() {
                         <div className="grow-1">
                             {playerMatches?.current ? (
                                 <Button style={{ cursor: 'pointer' }} onClick={handleJoinMatch}>
-                                    Rejoin {playerMatches.current}
+                                    Rejoin Active Match
                                 </Button>
                             ) : (
                                 <Button style={{ cursor: 'pointer' }} onClick={handleJoinMatch}>
