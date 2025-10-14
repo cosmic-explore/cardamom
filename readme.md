@@ -35,7 +35,7 @@ You can script games for testing by accessing the container that hosts the flask
 -   [x] ~~show when game is over~~
 -   [x] ~~show finished games~~
 -   [x] ~~add visuals for abilities~~
--   [ ] show move range based on position at end of move if creature will move
+-   [x] show move range based on position at end of move if creature will move
 -   [ ] let player step through most recent turn tick by tick
 -   [ ] let player choose turn to rewatch
 -   [ ] turn log with textual description game history
