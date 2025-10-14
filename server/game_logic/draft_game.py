@@ -3,6 +3,7 @@
 import sys
 import json
 import redis
+
 sys.path.append(".")
 from threading import Thread
 from time import sleep
@@ -10,9 +11,13 @@ from constants import TEST_MATCH_CHANNEL, TEST_MATCH_ID
 from classes.player import get_test_player_1, get_test_player_2
 from classes.command import Command
 from command_handler import submit_command
-from match_handler import attempt_join_match, get_active_match_by_id, publish_match_state
+from match_handler import (
+    attempt_join_match,
+    get_active_match_by_id,
+    publish_match_state,
+)
 
-redis_connection = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+redis_connection = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
 
 # Begin draft game setup
 
@@ -32,6 +37,7 @@ publish_match_state(match)
 # # submit_command(1, Command(creature_1, match.board[0][9], creature_1.actions[0], creature_2.position), TEST_MATCH_ID)
 # # submit_command(2, Command(creature_2, match.board[0][0], creature_2.actions[0], creature_1.position), TEST_MATCH_ID)
 
+
 def do_later():
     def do_work():
         sleep(2)
@@ -40,6 +46,7 @@ def do_later():
     thread = Thread(target=do_work)
     thread.start()
 
+
 def generator():
     match_listener = redis_connection.pubsub()
     match_listener.subscribe(TEST_MATCH_CHANNEL)
@@ -47,11 +54,11 @@ def generator():
         print("new message")
         yield message
 
+
 do_later()
 
 for message in generator():
     print(message)
-
 
 
 # set creature positions manually

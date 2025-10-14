@@ -21,7 +21,7 @@ from game_logic.match_handler import (
     publish_match_state,
     get_player_commands,
     publish_command_update,
-    submit_commands
+    submit_commands,
 )
 
 app = Flask(__name__)
@@ -44,7 +44,10 @@ app.secret_key = os.environ.get("SECRET_KEY")
 server_session = Session(app)
 
 # configure cors
-CORS(app, origins=[*os.environ.get("CORS_ORIGIN").split(",")], supports_credentials=True)
+CORS(
+    app, origins=[*os.environ.get("CORS_ORIGIN").split(",")], supports_credentials=True
+)
+
 
 def event_stream(channel):
     """Streams events from the given redis channel"""
@@ -57,14 +60,17 @@ def event_stream(channel):
         # convert to str because data must be bytes
         yield f"data: {json.dumps(message['data'])}\n\n"
 
+
 def channel_subscription_stream(channel_name):
     return Response(event_stream(channel_name), mimetype="text/event-stream")
 
-@app.route('/api/')
-def hello_world():
-    return '<h1>Hello from Flask & Docker</h1>'
 
-@app.route('/api/login', methods=['POST'])
+@app.route("/api/")
+def hello_world():
+    return "<h1>Hello from Flask & Docker</h1>"
+
+
+@app.route("/api/login", methods=["POST"])
 def login():
     """Currently allows a user to login as one of the two test players"""
     # TODO: implement actual login
@@ -79,7 +85,8 @@ def login():
         logging.debug(f"Logged in {player.name}")
         return jsonify(player.to_simple_dict())
 
-@app.route('/api/player/matches', methods=['GET'])
+
+@app.route("/api/player/matches", methods=["GET"])
 def get_player_matches():
     """Returns a JSON object containing the ids of the active game and a list of finished games"""
     player = get_player_from_session()
@@ -87,14 +94,17 @@ def get_player_matches():
         return Response(status=500)
     current_match = get_active_match_of_player(db, player)
     finished_match_ids = get_player_finished_matches(db, player)
-    return jsonify({
-        "current": None if current_match is None else str(current_match.id),
-        "finished": [str(id) for id in finished_match_ids]
-    })
+    return jsonify(
+        {
+            "current": None if current_match is None else str(current_match.id),
+            "finished": [str(id) for id in finished_match_ids],
+        }
+    )
 
-@app.route('/api/match/join', methods=['GET'])
+
+@app.route("/api/match/join", methods=["GET"])
 def join_match():
-    """ get player, add them to a match, and return match data """
+    """get player, add them to a match, and return match data"""
     player = get_player_from_session()
     if player is None:
         return Response(status=500)
@@ -107,13 +117,19 @@ def join_match():
     else:
         match = attempt_join_match(db, player)
         if match is not None:
-            if match.player_1 is not None and match.player_2 is not None and match and match.turn_number == 0:
+            if (
+                match.player_1 is not None
+                and match.player_2 is not None
+                and match
+                and match.turn_number == 0
+            ):
                 start_match(db, match)
             return channel_subscription_stream(match.get_redis_channel())
         else:
             return Response(status=500)
-    
-@app.route('/api/match/refresh', methods=['GET'])
+
+
+@app.route("/api/match/refresh", methods=["GET"])
 def refresh_match():
     """Resend match data"""
     match = get_match_from_session()
@@ -121,17 +137,21 @@ def refresh_match():
         return Response(status=500)
     publish_match_state(match)
     publish_command_update(match)
-    return Response(status=204) 
+    return Response(status=204)
 
-@app.route('/api/creaturestates/<id>/moves', methods=['GET'])
+
+@app.route("/api/creaturestates/<id>/moves", methods=["GET"])
 def get_creature_moves(id):
     """Returns a list of possible moves for the creature"""
     match = get_match_from_session()
     creature_state = match.find_creature_state(id)
-    positions = match.board.get_positions_in_range(creature_state.position, creature_state.creature.speed)
+    positions = match.board.get_positions_in_range(
+        creature_state.position, creature_state.creature.speed
+    )
     return jsonify([pos.to_simple_dict() for pos in positions])
 
-@app.route('/api/creaturestates/<id>/moves/route', methods=['GET'])
+
+@app.route("/api/creaturestates/<id>/moves/route", methods=["GET"])
 def get_move_route(id):
     x_pos = int(request.args.get("target_x"))
     y_pos = int(request.args.get("target_y"))
@@ -142,10 +162,16 @@ def get_move_route(id):
     positions = creature_state.get_planned_move_path(destination)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
-@app.route('/api/creaturestates/<creature_state_id>/actions/<action_id>/targets', methods=['GET'])
+
+@app.route(
+    "/api/creaturestates/<creature_state_id>/actions/<action_id>/targets",
+    methods=["GET"],
+)
 def get_action_targets(creature_state_id, action_id):
     """Returns a list of valid targets for the action"""
-    logging.debug(f"searching for possible targets of action {action_id} from creature {creature_state_id}")
+    logging.debug(
+        f"searching for possible targets of action {action_id} from creature {creature_state_id}"
+    )
     match = get_match_from_session()
     creature_state = match.find_creature_state(creature_state_id)
     action = creature_state.creature.find_action_of_creature(action_id)
@@ -158,18 +184,27 @@ def get_action_targets(creature_state_id, action_id):
     positions = match.board.get_positions_in_range(action_origin_pos, action.reach)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
-@app.route('/api/creaturestates/<creature_state_id>/actions/<action_id>/affected', methods=['GET'])
+
+@app.route(
+    "/api/creaturestates/<creature_state_id>/actions/<action_id>/affected",
+    methods=["GET"],
+)
 def get_action_affected(creature_state_id, action_id):
     """Returns a list of positions affected by the action"""
     match = get_match_from_session()
     creature_state = match.find_creature_state(creature_state_id)
     action = creature_state.creature.find_action_of_creature(action_id)
-    target = match.board[int(request.args.get("target_x"))][int(request.args.get("target_y"))]
-    logging.debug(f"Finding affected positions for {action.id} from {creature_state.position} to {target}")
+    target = match.board[int(request.args.get("target_x"))][
+        int(request.args.get("target_y"))
+    ]
+    logging.debug(
+        f"Finding affected positions for {action.id} from {creature_state.position} to {target}"
+    )
     positions = action.get_affected_positions_at_tick(creature_state.position, target)
     return jsonify([pos.to_simple_dict() for pos in positions])
 
-@app.route('/api/match/submit', methods=['POST'])
+
+@app.route("/api/match/submit", methods=["POST"])
 def submit_match_commands():
     request_data = request.get_json()
     match = get_match_from_session()
@@ -180,23 +215,34 @@ def submit_match_commands():
     submit_commands(db, match.get_player_number(player), commands, match)
     return Response(status=204)
 
-@app.route('/api/match/commands', methods=['GET'])
+
+@app.route("/api/match/commands", methods=["GET"])
 def get_stored_commands():
     player = get_player_from_session()
     match = get_match_from_session()
-    logging.debug(f"Retreiving stored commands for player {player.name} in match {match.id}")
+    logging.debug(
+        f"Retreiving stored commands for player {player.name} in match {match.id}"
+    )
     player_number = match.get_player_number(player)
-    return jsonify([command.to_simple_dict() for command in get_player_commands(match, player_number)])
+    return jsonify(
+        [
+            command.to_simple_dict()
+            for command in get_player_commands(match, player_number)
+        ]
+    )
+
 
 def get_player_from_session():
     player_name = session.get("player_name")
     logging.debug(f"found player {player_name} from session")
     return Player.find_by_name(db, player_name)
 
+
 def get_match_from_session():
     player = get_player_from_session()
     logging.debug(f"Finding active match of player {player.name}")
     return get_active_match_of_player(db, player)
+
 
 if __name__ == "__main__":
     # can run the app without guinicorn in development

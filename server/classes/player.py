@@ -1,4 +1,5 @@
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 from sqlalchemy import String, select
@@ -8,11 +9,12 @@ from uuid import uuid4
 from .base import db
 from .creature import Creature
 
+
 class Player(db.Model):
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     creatures: Mapped[List[Creature]] = relationship(back_populates="player")
-    
+
     def __init__(self, name, id=None):
         self.id = uuid4() if id is None else id
         self.name = name
@@ -21,7 +23,7 @@ class Player(db.Model):
     def get_user_id(self):
         """Func required by oauth"""
         return self.id
-    
+
     def get_redis_active_match_key(self):
         return f"PLAYER_f{(str(self.id))}_MATCH"
 
@@ -30,12 +32,14 @@ class Player(db.Model):
         return {
             "id": str(self.id),
             "name": self.name,
-            "creatures": [c.to_simple_dict() for c in self.creatures]
+            "creatures": [c.to_simple_dict() for c in self.creatures],
         }
-    
+
     @classmethod
     def find_by_name(cls, db, name):
-        player = db.session.scalars(select(Player).where(Player.name == name)).one_or_none()
+        player = db.session.scalars(
+            select(Player).where(Player.name == name)
+        ).one_or_none()
         if player is not None:
             logging.debug(f"Found player {player.name} in the database.")
         else:
