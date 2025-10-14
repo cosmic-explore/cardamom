@@ -5,6 +5,7 @@ import { Position, PosSelectionType } from './Position'
 
 type BoardProps = {
     matchData: MatchData
+    displayedTurnNum: number
     selectedPos: PositionData | null
     highlightedPosList: PositionData[]
     handlePosClick: (data: PositionData) => void
@@ -21,21 +22,33 @@ export function Board(props: BoardProps) {
     }, [props.matchData])
 
     useEffect(() => {
+        displayTurn()
+    }, [props.displayedTurnNum])
+
+    useEffect(() => {
         if (props.replayingTurn === true) {
             watchTurn()
-        } else {
-            SetColumns(props.matchData.board.columns)
         }
     }, [props.replayingTurn])
 
+    const displayTurn = () => {
+        // display the turn from its beginning state
+
+        if (props.displayedTurnNum === props.matchData.turn_number) {
+            SetColumns(props.matchData.board.columns)
+        } else {
+            const initialTurnState = props.matchData.history[props.displayedTurnNum][0]
+            SetColumns(initialTurnState.board.columns)
+        }
+    }
+
     const watchTurn = async () => {
-        // the previous turn (whose outcome is the current board state) will be
-        // the current turn_number - 1
-        // the game is inactive on the first turn, or when the game is over
-        const turnToWatch = props.matchData.active
-            ? props.matchData.turn_number - 1
-            : props.matchData.turn_number
-        const turn = props.matchData.history[turnToWatch]
+        if (props.displayedTurnNum === props.matchData.turn_number) {
+            // if it's the current turn, there is no history to rewatch
+            props.finishReplay()
+            return
+        }
+        const turn = props.matchData.history[props.displayedTurnNum]
         for (let i = 0; i < turn.length; i++) {
             SetColumns(turn[i].board.columns)
             await new Promise((r) => setTimeout(r, 500))

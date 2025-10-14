@@ -36,8 +36,8 @@ You can script games for testing by accessing the container that hosts the flask
 -   [x] ~~show finished games~~
 -   [x] ~~add visuals for abilities~~
 -   [x] ~~show move range based on position at end of move if creature will move~~
--   [ ] let player step through most recent turn tick by tick
--   [ ] let player choose turn to rewatch
+-   [x] ~~let player choose turn to rewatch~~
+-   [ ] let player step through turns tick by tick
 -   [ ] turn log with textual description game history
 -   [ ] display the player's owned creatures on the main page
 -   [ ] lobby for open games
@@ -54,9 +54,9 @@ You can script games for testing by accessing the container that hosts the flask
 -   [x] ~~endpoint for player game history~~
 -   [x] ~~make all action within a match tick simultaneous~~
 -   [x] ~~store ability location and data for each tick~~
--   [ ] provide useful error messages from server endpoints
 -   [ ] create registry of open matches in redis
 -   [ ] endpoint for open game lobby
+-   [ ] provide useful error messages from server endpoints
 
 ### development todos
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Select } from 'radix-ui'
+import { Button, ThickCheckIcon } from '@radix-ui/themes'
 import {
     ActionData,
     CommandData,
@@ -8,7 +10,6 @@ import {
     PositionData
 } from '../DataTypes'
 import { Board } from './Board'
-import { Button, ThickCheckIcon } from '@radix-ui/themes'
 import { OrderPanel } from './OrderPanel'
 import { DetailPanel } from './DetailPanel'
 import {
@@ -32,6 +33,12 @@ export type CommandState = {
     p2Submitted: boolean
 }
 
+export type BoardDisplayState = {
+    turnNum: number
+    replayingTurn: boolean
+    playingNewTurn: boolean
+}
+
 export const MatchPanel = (props: {
     matchData: MatchData
     playerData: PlayerData
@@ -43,7 +50,11 @@ export const MatchPanel = (props: {
     const [commands, setCommands] = useState<CommandData[]>(
         fillBlankCommands(props.matchData, props.playerData.name)
     )
-    const [replayingTurn, setReplayingTurn] = useState<boolean>(false)
+    const [boardDisplay, setBoardDisplay] = useState<BoardDisplayState>({
+        turnNum: props.matchData.turn_number,
+        replayingTurn: false,
+        playingNewTurn: false
+    })
 
     useEffect(() => {
         if (!isMatchOver(props.matchData)) {
@@ -62,11 +73,29 @@ export const MatchPanel = (props: {
     }, [selectedPos, commandMode, commands])
 
     useEffect(() => {
-        setSelectedPos(null)
         if (props.matchData.turn_number > 0) {
-            setReplayingTurn(true)
+            setBoardDisplay({
+                turnNum: props.matchData.turn_number - 1,
+                replayingTurn: true,
+                playingNewTurn: true
+            })
         }
     }, [props.matchData])
+
+    useEffect(() => {
+        if (boardDisplay.replayingTurn) {
+            setSelectedPos(null)
+            setHighlightedPosList([])
+        }
+        if (!boardDisplay.replayingTurn && boardDisplay.playingNewTurn) {
+            // when a new turn has finished playing through
+            setBoardDisplay({
+                ...boardDisplay,
+                turnNum: props.matchData.turn_number,
+                playingNewTurn: false
+            })
+        }
+    }, [boardDisplay])
 
     const updatePositionHighlights = () => {
         // highlight the appropriate positions if a creature is selected
@@ -252,7 +281,12 @@ export const MatchPanel = (props: {
         <div className="flex flex-row">
             <div className="flex flex-col items-center">
                 <h2 className="mb-1">{getMatchTitle()}</h2>
-                <div>Turn {props.matchData.turn_number}</div>
+                <div>
+                    Turn {props.matchData.turn_number}{' '}
+                    {boardDisplay.turnNum !== props.matchData.turn_number
+                        ? `(displaying ${boardDisplay.turnNum})`
+                        : ''}
+                </div>
                 <div className="flex flex-row mb-3">
                     <div>
                         Player 1: {props.matchData.player_1?.name}
@@ -284,12 +318,14 @@ export const MatchPanel = (props: {
                 <Board
                     {...{
                         matchData: props.matchData,
+                        displayedTurnNum: boardDisplay.turnNum,
                         selectedPos,
                         highlightedPosList,
                         handlePosClick,
                         getTargetedPos,
-                        replayingTurn,
-                        finishReplay: () => setReplayingTurn(false)
+                        replayingTurn: boardDisplay.replayingTurn,
+                        finishReplay: () =>
+                            setBoardDisplay({ ...boardDisplay, replayingTurn: false })
                     }}
                 />
             </div>
@@ -339,9 +375,46 @@ export const MatchPanel = (props: {
                     Refresh Match Data
                 </Button>
                 <div className="mb-2" />
-                <Button onClick={() => setReplayingTurn(true)} style={{ cursor: 'pointer' }}>
+                <Button
+                    onClick={() => setBoardDisplay({ ...boardDisplay, replayingTurn: true })}
+                    style={{ cursor: 'pointer' }}
+                    loading={boardDisplay.replayingTurn}
+                    disabled={
+                        boardDisplay.turnNum === 0 ||
+                        boardDisplay.turnNum === props.matchData.turn_number ||
+                        boardDisplay.replayingTurn
+                    }
+                >
                     Rewatch Turn
                 </Button>
+                <div>
+                    <div>Display Turn:</div>
+                    <Select.Root
+                        value={boardDisplay.turnNum.toString()}
+                        onValueChange={(newValue) =>
+                            setBoardDisplay({ ...boardDisplay, turnNum: parseInt(newValue) })
+                        }
+                    >
+                        <Select.Trigger className="SelectTrigger" style={{ cursor: 'pointer' }}>
+                            <Select.Value placeholder={props.matchData.turn_number} />
+                        </Select.Trigger>
+                        <Select.Content className="SelectContent">
+                            <Select.Viewport className="SelectViewport">
+                                {[...Array(props.matchData.turn_number + 1).keys()].map(
+                                    (turnNumber) => (
+                                        <Select.Item
+                                            value={turnNumber.toString()}
+                                            style={{ cursor: 'pointer' }}
+                                            key={turnNumber}
+                                        >
+                                            <Select.ItemText>{turnNumber}</Select.ItemText>
+                                        </Select.Item>
+                                    )
+                                )}
+                            </Select.Viewport>
+                        </Select.Content>
+                    </Select.Root>
+                </div>
             </div>
         </div>
     )
