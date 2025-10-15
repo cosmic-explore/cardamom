@@ -57,7 +57,9 @@ export const MatchPanel = (props: {
     })
 
     useEffect(() => {
-        if (!isMatchOver(props.matchData)) {
+        // only overwrite the client's commands with the server's if none are yet
+        // entered on the client
+        if (!isMatchOver(props.matchData) && areCommandsBlank(commands)) {
             getStoredCommands().then((data) => {
                 if (data.length !== 0) {
                     setCommands(data)
@@ -427,5 +429,11 @@ const fillBlankCommands = (matchData: MatchData, playerName: string): CommandDat
     )
     return playerCreatureStates.map((cs) => {
         return { action: null, action_target: null, creature_state_id: cs.id, move_target: null }
+    })
+}
+
+const areCommandsBlank = (commands: CommandData[]): boolean => {
+    return commands.every((command: CommandData) => {
+        command.action === null && command.action_target === null && command.move_target === null
     })
 }
