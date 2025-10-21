@@ -1,10 +1,21 @@
+# About the game
+
+This is a turn-based strategy game in which players must battle each other using a host of "creatures," each of which has unique abilities and attributes. Victory is achieved when all of the opponent's creatures have been defeated.
+
 # Setup
 
-The game consists of a React client, a Flask server to handle game logic, a Redis server to cache active games, and a Postgres database, all of which run in seperate docker containers that are managed by `compose.yaml`.
+The game runs on four docker containers (managed by `compose.yaml`):
+
+-   A React app built with Vite that uses radix-ui and tailwind.css
+-   A Flask server to handle game and user logic
+-   A Redis server to cache active games
+-   A Postgres database
+
+To set it up locally, take the following steps.
 
 1. Clone this repository
 2. Download, install, and run [Docker Desktop](https://docs.docker.com/desktop/), or just Docker Engine if you prefer
-3. Navigate to the repository in your terminal and run `docker compose up -d`
+3. Navigate to the repository in your terminal and run `docker compose up -d client`
 
 All done! You should be able to connect to the flask server at [localhost:8888](http://localhost:8888) and the database at port `5432` with username `dev_user` and password `dev_password`.
 
