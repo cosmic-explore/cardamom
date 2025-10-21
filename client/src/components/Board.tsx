@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { MatchData, PositionData } from '../DataTypes'
 import { arePositionsSame, getMatchCreatureState } from '../utils/game-utils'
 import { Position, PosSelectionType } from './Position'
+import { getIntRange } from '../utils/general-utils'
 
 type BoardProps = {
     matchData: MatchData
@@ -75,7 +76,13 @@ export function Board(props: BoardProps) {
     }
 
     return (
+        // the styling of the x & y axes are similar to that of a Position component
         <div className="flex">
+            <div className="flex flex-col">
+                {getIntRange(columns.length).map((rowNum) => {
+                    return <div className="size-12 flex justify-center items-center">{rowNum}</div>
+                })}
+            </div>
             {columns.map((col, rowIndex: number) => {
                 return (
                     <div key={rowIndex}>
@@ -99,6 +106,7 @@ export function Board(props: BoardProps) {
                                 </div>
                             )
                         })}
+                        <div className="size-12 flex justify-center items-center">{rowIndex}</div>
                     </div>
                 )
             })}

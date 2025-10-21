@@ -27,6 +27,7 @@ import {
     getMatchWinner,
     isMatchOver
 } from '../utils/game-utils'
+import { getIntRange } from '../utils/general-utils'
 
 export type CommandState = {
     p1Submitted: boolean
@@ -402,17 +403,15 @@ export const MatchPanel = (props: {
                         </Select.Trigger>
                         <Select.Content className="SelectContent">
                             <Select.Viewport className="SelectViewport">
-                                {[...Array(props.matchData.turn_number + 1).keys()].map(
-                                    (turnNumber) => (
-                                        <Select.Item
-                                            value={turnNumber.toString()}
-                                            style={{ cursor: 'pointer' }}
-                                            key={turnNumber}
-                                        >
-                                            <Select.ItemText>{turnNumber}</Select.ItemText>
-                                        </Select.Item>
-                                    )
-                                )}
+                                {getIntRange(props.matchData.turn_number + 1).map((turnNumber) => (
+                                    <Select.Item
+                                        value={turnNumber.toString()}
+                                        style={{ cursor: 'pointer' }}
+                                        key={turnNumber}
+                                    >
+                                        <Select.ItemText>{turnNumber}</Select.ItemText>
+                                    </Select.Item>
+                                ))}
                             </Select.Viewport>
                         </Select.Content>
                     </Select.Root>

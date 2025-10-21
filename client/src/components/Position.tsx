@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CreatureState, PositionData } from '../DataTypes'
 import { GameSprite } from './GameSprite'
 
@@ -17,17 +18,29 @@ export type PositionProps = {
 }
 
 export function Position(props: PositionProps) {
+    const [isHovered, setIsHovered] = useState<boolean>(false)
+
     const handleClick = () => {
         props.clickFunc(props.posData)
     }
 
-    const showCoords = props.posData.effects.length == 0 && props.creatureState == null
+    const showCoords =
+        props.posData.effects.length == 0 &&
+        props.creatureState == null &&
+        (isHovered || props.selectionType === PosSelectionType.selected)
+
+    let className = `${props.selectionType} size-12 outline flex justify-center items-center`
+    if (isHovered) {
+        className += ' bg-sky-100'
+    }
 
     return (
         <div
-            className={`${props.selectionType} size-12 outline hover:bg-sky-100 flex justify-center items-center`}
+            className={className}
             onClick={handleClick}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', outlineColor: 'darkgray', color: 'gray' }}
+            onPointerEnter={() => setIsHovered(true)}
+            onPointerLeave={() => setIsHovered(false)}
         >
             {props.posData.effects.length > 0 ? (
                 <GameSprite {...{ spriteName: 'Action Effect' }} />
